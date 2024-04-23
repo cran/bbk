@@ -1,0 +1,17 @@
+ef28154eaee7e75adbdc4073e91c778c *DESCRIPTION
+40d17bdc62afc51830a1c8c0564d4ed6 *LICENSE
+0af04c6c5120f4f454eddcf2ca01235b *NAMESPACE
+d5279fe614127043c39641673da37ef3 *NEWS.md
+e085268735a442a62d71803327884df1 *R/api.R
+818a09fa2dc069ea93cfd289554fc39a *R/bundesbank-package.R
+4cc01d18e3a5ad9811fe11583ad16cfa *R/utils.R
+eee7ae3111fa868e96c0cbdd12c6501c *README.md
+10b311c4d7fbe22635c5925539f83cec *man/bb_data.Rd
+cffe3252c3cdd2d2f062d041c0bb2649 *man/bb_metadata.Rd
+1b03cccf61f2dd547ed2fe6d953f93ac *man/bb_series.Rd
+fa85e914ab6f21acae254ea75712835a *man/bbk-package.Rd
+575b2cbc22fd41e27f91bc86c2dde42b *man/figures/README-plotting-1.png
+c65c934925f9eec16a5599d15809b646 *tests/testthat.R
+316f9f52ef6f342646a025b263f69ffb *tests/testthat/fixtures/bb-data.xml
+f28c732b471d9d3c67f616067c7345e0 *tests/testthat/fixtures/bb-series.rds
+bb0cde072a8f79d6b5de3461bfee6128 *tests/testthat/test-api.R
