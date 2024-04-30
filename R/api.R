@@ -21,13 +21,13 @@
 #'  of the series. If `NULL`, no restriction is applied. Default `NULL`.
 #' @returns A `data.frame()` with the requested data. The columns are:
 #'   \item{date}{The date of the observation}
+#'   \item{value}{The value of the observation}
 #'   \item{key}{The time series key}
 #'   \item{title}{The title of the dataflow}
+#'   \item{frequency}{The frequency of the observation}
 #'   \item{category}{The category of the observation}
 #'   \item{unit}{The unit of the observation}
 #'   \item{unit_multiplier}{The unit multiplier of the observation}
-#'   \item{frequency}{The frequency of the observation}
-#'   \item{value}{The value of the observation}
 #' @references <https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-data>
 #' @family data
 #' @export
@@ -70,7 +70,7 @@ bb_data <- function(flow,
     key <- toupper(key)
     resource <- sprintf("data/%s/%s", flow, key)
   }
-  body <- bundesbank(
+  body <- make_request(
     resource = resource,
     startPeriod = start_period,
     endPeriod = end_period,
@@ -87,16 +87,16 @@ bb_data <- function(flow,
 #' @inherit bb_data references
 #' @returns A `data.frame()` with the requested data. The columns are:
 #'   \item{date}{The date of the observation}
+#'   \item{value}{The value of the observation}
 #'   \item{key}{The time series key}
 #'   \item{title}{The title of the dataflow}
+#'   \item{frequency}{The frequency of the observation}
 #'   \item{category}{The category of the observation}
 #'   \item{unit}{The unit of the observation}
 #'   \item{unit_multiplier}{The unit multiplier of the observation}
-#'   \item{frequency}{The frequency of the observation}
 #'   \item{last_update}{The last update date}
 #'   \item{source}{The source of the data}
 #'   \item{comment}{A comment on the data}
-#'   \item{value}{The value of the observation}
 #' @family data
 #' @export
 #' @examples
@@ -107,13 +107,8 @@ bb_data <- function(flow,
 #' }
 bb_series <- function(key) {
   stopifnot(is_string(key))
-  body <- request("https://api.statistiken.bundesbank.de/rest/data/tsIdList") |>
-    req_user_agent("worldbank (https://m-muecke.github.io/worldbank)") |>
-    req_headers(
-      `Accept-Language` = "en", accept = "application/vnd.bbk.data+csv-zip"
-    ) |>
+  body <- build_request("data/tsIdList", accept = "application/vnd.bbk.data+csv-zip") |>
     req_body_json(key, auto_unbox = FALSE) |>
-    req_error(body = bb_error_body) |>
     req_perform() |>
     resp_body_raw()
 
@@ -172,13 +167,17 @@ parse_bb_series <- function(body, key) {
   res <- read.csv(path, header = FALSE, skip = 11L)[, 1:2] |>
     stats::setNames(c("date", "value"))
   res$value <- na_if_empty(res$value, ".")
+  res <- stats::na.omit(res)
 
   metadata <- readLines(path, n = 10L)
-  title <- sub("^\"\",", "", metadata[[2L]])
-  title <- sub(",$", "", title)
+  title <- sub("^[\",]+", "", metadata[[2L]])
+  title <- sub("[\",]+$", "", title)
   freq <- extract_metadata(metadata, "^Time format code")
-  unit <- extract_metadata(metadata, "^unit,")
-  unit_multiplier <- extract_metadata(metadata, "^unit multiplier,")
+  unit <- extract_metadata(metadata, "^Unit \\(in english\\),")
+  if (is.na(unit)) {
+    unit <- extract_metadata(metadata, "^unit,")
+  }
+  unit_mult <- extract_metadata(metadata, "^unit multiplier,")
   category <- extract_metadata(metadata, "^category,")
   last_update <- extract_metadata(metadata, "^last update,")
   comment <- extract_metadata(metadata, "^Comment \\(in english\\),")
@@ -194,19 +193,13 @@ parse_bb_series <- function(body, key) {
   res$date <- parse_date(res$date, freq)
   res$key <- key
   res$title <- title
-  res$category <- category
   res$frequency <- freq
+  res$category <- category
   res$unit <- unit
-  res$unit_multiplier <- unit_multiplier
+  res$unit_multiplier <- unit_mult
   res$last_update <- last_update
   res$source <- src
   res$comment <- comment
-
-  nms <- c(
-    "date", "key", "title", "category", "unit", "unit_multiplier", "frequency",
-    "last_update", "source", "comment", "value"
-  )
-  res <- res[, nms]
   res
 }
 
@@ -221,7 +214,6 @@ parse_metadata <- function(x, lang) {
   do.call(rbind, res)
 }
 
-
 parse_bb_data <- function(body, key) {
   freq <- body |>
     xml2::xml_find_first("//generic:Value[@id='BBK_STD_FREQ']") |>
@@ -235,6 +227,9 @@ parse_bb_data <- function(body, key) {
     D = "daily"
   )
 
+  key <- body |>
+    xml2::xml_find_first("//generic:Value[@id='BBK_ID']") |>
+    xml2::xml_attr("value")
   title <- body |>
     xml2::xml_find_first("//generic:Value[@id='BBK_TITLE_ENG']") |>
     xml2::xml_attr("value")
@@ -261,13 +256,13 @@ parse_bb_data <- function(body, key) {
 
   data <- data.frame(
     date = date,
+    value = value,
     key = key,
     title = title,
+    frequency = freq,
     category = category,
     unit = unit,
-    unit_multiplier = unit_mult,
-    frequency = freq,
-    value = value
+    unit_multiplier = unit_mult
   )
   data
 }
@@ -281,13 +276,6 @@ parse_date <- function(date, freq) {
   )
 }
 
-bb_error_body <- function(resp) {
-  body <- resp_body_json(resp)
-  message <- body$title
-  docs <- "See docs at <https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/status-codes/status-codes-855918>" # nolint
-  c(message, docs)
-}
-
 fetch_metadata <- function(resource, xpath, id = NULL, lang = "en") {
   lang <- match.arg(lang, c("en", "de"))
   stopifnot(is_string_or_null(id))
@@ -295,19 +283,30 @@ fetch_metadata <- function(resource, xpath, id = NULL, lang = "en") {
   if (!is.null(id)) {
     resource <- paste(resource, toupper(id), sep = "/")
   }
-  body <- bundesbank(resource)
+  body <- make_request(resource)
   entries <- xml2::xml_find_all(body, xpath)
   res <- parse_metadata(entries, lang)
   res
 }
 
-bundesbank <- function(resource, ...) {
+bb_error_body <- function(resp) {
+  body <- resp_body_json(resp)
+  message <- body$title
+  docs <- "See docs at <https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/status-codes/status-codes-855918>" # nolint
+  c(message, docs)
+}
+
+build_request <- function(resource, accept = NULL) {
   request("https://api.statistiken.bundesbank.de/rest") |>
     req_user_agent("worldbank (https://m-muecke.github.io/worldbank)") |>
-    req_headers(`Accept-Language` = "en") |>
+    req_headers(`Accept-Language` = "en", accept = accept) |>
     req_url_path_append(resource) |>
+    req_error(body = bb_error_body)
+}
+
+make_request <- function(resource, ...) {
+  build_request(resource) |>
     req_url_query(...) |>
-    req_error(body = bb_error_body) |>
     req_perform() |>
     resp_body_xml()
 }
