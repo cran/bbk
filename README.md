@@ -34,34 +34,39 @@ pak::pak("m-muecke/bbk")
 
 ## Usage
 
-bbk functions are prefixed with `bb_` and follow the naming convention
+bbk functions are prefixed with `bbk_` and follow the naming convention
 of the API. The usual workflow would be to search for the time series
 key on the [Bundesbank
 website](https://www.bundesbank.de/en/statistics/time-series-databases)
-and then use it to retrieve the data with either `bb_data()` or
-`bb_series` depending on your needs. Despite querying different
+and then use it to retrieve the data with either `bbk_data()` or
+`bkb_series` depending on your needs. Despite querying different
 endpoints, both functions should return the same data. However,
-`bb_data()` is more flexible and allows more customisation.
+`bbk_data()` is more flexible and allows more customisation.
 
 ``` r
 library(bbk)
 
 # fetch 10 year daily yield curve
-yield_curve <- bb_data(
+yield_curve <- bbk_data(
   flow = "BBSIS",
   key = "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A",
   start_period = "2020-01-01"
 )
 yield_curve
-#> # A tibble: 1,103 × 8
-#>   date       value key            title frequency category unit  unit_multiplier
-#>   <date>     <dbl> <chr>          <chr> <chr>     <chr>    <chr> <chr>          
-#> 1 2020-01-02 -0.16 BBSIS.D.I.ZAR… Yiel… daily     GKZR     perc… 0              
-#> 2 2020-01-03 -0.27 BBSIS.D.I.ZAR… Yiel… daily     GKZR     perc… 0              
-#> 3 2020-01-06 -0.27 BBSIS.D.I.ZAR… Yiel… daily     GKZR     perc… 0              
-#> 4 2020-01-07 -0.27 BBSIS.D.I.ZAR… Yiel… daily     GKZR     perc… 0              
-#> 5 2020-01-08 -0.27 BBSIS.D.I.ZAR… Yiel… daily     GKZR     perc… 0              
-#> # ℹ 1,098 more rows
+#> # A tibble: 1,122 × 25
+#>   date       key           value title freq  bearer_reg item  valuation currency
+#>   <date>     <chr>         <dbl> <chr> <chr> <chr>      <chr> <chr>     <chr>   
+#> 1 2020-01-02 BBSIS.D.I.ZA… -0.16 Yiel… daily I          ZAR   ZI        EUR     
+#> 2 2020-01-03 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
+#> 3 2020-01-06 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
+#> 4 2020-01-07 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
+#> 5 2020-01-08 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
+#> # ℹ 1,117 more rows
+#> # ℹ 16 more variables: issuer_class <chr>, listed_sub <chr>,
+#> #   security_class <chr>, maturity <chr>, interest_type <chr>,
+#> #   interest_rate <chr>, redemption <chr>, certificate <chr>, coverage <chr>,
+#> #   rating <chr>, time_format <chr>, decimals <chr>, unit <chr>,
+#> #   unit_mult <chr>, category <chr>, unit_eng <chr>
 ```
 
 <img src="man/figures/README-plotting-1.png" width="100%" />
