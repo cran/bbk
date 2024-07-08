@@ -12,13 +12,18 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/bbk)](https://CRAN.R-project.org/package=bbk)
 <!-- badges: end -->
 
-bbk is minimal R client for the
-[Bundesbank](https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service)
-SDMX Web Service API.
+bbk is minimal R client for the [Deutsche
+Bundesbank](https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service)
+and the [European Central Bank
+(ECB)](https://data.ecb.europa.eu/help/api/overview) APIs.
+
+> In the future, it may be extended to other central banks and financial
+> institutions. Feel free to open an issue if you have a specific
+> request.
 
 ## Installation
 
-You can install the released version of **treasury** from
+You can install the released version of **bbk** from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
@@ -34,14 +39,12 @@ pak::pak("m-muecke/bbk")
 
 ## Usage
 
-bbk functions are prefixed with `bbk_` and follow the naming convention
-of the API. The usual workflow would be to search for the time series
-key on the [Bundesbank
+bbk functions are prefixed with either `bbk_` or `ecb_` depending on the
+origin of the data and follow the naming convention of the APIs. The
+usual workflow would be to search for the time series key on the [ECB
+Portal](https://data.ecb.europa.eu/) or [Bundesbank
 website](https://www.bundesbank.de/en/statistics/time-series-databases)
-and then use it to retrieve the data with either `bbk_data()` or
-`bkb_series` depending on your needs. Despite querying different
-endpoints, both functions should return the same data. However,
-`bbk_data()` is more flexible and allows more customisation.
+and then use it to retrieve the data.
 
 ``` r
 library(bbk)
@@ -53,7 +56,7 @@ yield_curve <- bbk_data(
   start_period = "2020-01-01"
 )
 yield_curve
-#> # A tibble: 1,122 × 25
+#> # A tibble: 1,152 × 25
 #>   date       key           value title freq  bearer_reg item  valuation currency
 #>   <date>     <chr>         <dbl> <chr> <chr> <chr>      <chr> <chr>     <chr>   
 #> 1 2020-01-02 BBSIS.D.I.ZA… -0.16 Yiel… daily I          ZAR   ZI        EUR     
@@ -61,7 +64,7 @@ yield_curve
 #> 3 2020-01-06 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
 #> 4 2020-01-07 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
 #> 5 2020-01-08 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
-#> # ℹ 1,117 more rows
+#> # ℹ 1,147 more rows
 #> # ℹ 16 more variables: issuer_class <chr>, listed_sub <chr>,
 #> #   security_class <chr>, maturity <chr>, interest_type <chr>,
 #> #   interest_rate <chr>, redemption <chr>, certificate <chr>, coverage <chr>,
@@ -75,6 +78,8 @@ yield_curve
 
 - [bundesbank](https://github.com/enricoschumann/bundesbank): R scripts
   for downloading time-series data from the Bundesbank.
+- [ecb](https://github.com/expersso/ecb): R interface to the European
+  Central Bank’s Statistical Data Warehouse (SDW) API.
 - [rsdmx](https://github.com/opensdmx/rsdmx): R package for reading SDMX
   data and metadata.
 - [readsdmx](https://github.com/mdequeljoe/readsdmx): R package for

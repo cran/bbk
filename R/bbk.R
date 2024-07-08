@@ -1,4 +1,4 @@
-#' Returns data for a given flow and key
+#' Returns Bundesbank data for a given flow and key
 #'
 #' @param flow `character(1)` flow to query, 5-8 characters.
 #'   See [bbk_metadata()] for available dataflows.
@@ -75,12 +75,13 @@ bbk_data <- function(flow,
   as_tibble(data)
 }
 
-#' Returns the time serie that is found with the specified time series key
+#' Returns the Bundesbank time serie that is found with the specified time series key
 #'
 #' @inherit bbk_data source
 #' @inheritParams bbk_data
 #' @inherit bbk_data return
 #' @family data
+#' @seealso [bbk_data()] for an endpoint with more options.
 #' @export
 #' @examples
 #' \donttest{
@@ -99,7 +100,7 @@ bbk_series <- function(key) {
   as_tibble(data)
 }
 
-#' Returns the available metadata
+#' Returns the available Bundesbank metadata
 #'
 #' Retrieval of the metadata stored in the Bundesbank's time series database.
 #' Access via the SDMX Web Service API of the Bundesbank.
@@ -131,7 +132,7 @@ bbk_metadata <- function(type, id = NULL, lang = c("en", "de")) {
     codelist = list("codelist/BBK", "//structure:Codelist"),
     concept = list("conceptscheme/BBK", "//structure:ConceptScheme")
   )
-  res <- do.call(fetch_metadata, c(args, list(id, lang)))
+  res <- do.call(fetch_bbk_metadata, c(args, list(id, lang)))
   res$name <- na_if_empty(res$name)
   as_tibble(res)
 }
@@ -182,7 +183,7 @@ parse_bbk_series <- function(body, key) {
   res
 }
 
-parse_metadata <- function(x, lang) {
+parse_bbk_metadata <- function(x, lang) {
   res <- lapply(x, \(node) {
     id <- xml2::xml_attr(node, "id")
     nms <- node |>
@@ -233,7 +234,7 @@ parse_bbk_data <- function(body) {
       P1D = "daily"
     )
 
-    entries <- body |> xml2::xml_find_all("//generic:Obs[generic:ObsValue]")
+    entries <- xml2::xml_find_all(body, "//generic:Obs[generic:ObsValue]")
     data$date <- entries |>
       xml2::xml_find_all(".//generic:ObsDimension") |>
       xml2::xml_attr("value") |>
@@ -251,16 +252,7 @@ parse_bbk_data <- function(body) {
   res
 }
 
-parse_date <- function(date, freq) {
-  switch(freq,
-    daily = as.Date(date),
-    monthly = as.Date(paste0(date, "-01")),
-    annual = as.integer(date),
-    date
-  )
-}
-
-fetch_metadata <- function(resource, xpath, id = NULL, lang = "en") {
+fetch_bbk_metadata <- function(resource, xpath, id = NULL, lang = "en") {
   lang <- match.arg(lang, c("en", "de"))
   stopifnot(is_string_or_null(id))
   resource <- paste("metadata", resource, sep = "/")
@@ -269,7 +261,7 @@ fetch_metadata <- function(resource, xpath, id = NULL, lang = "en") {
   }
   body <- make_request(resource)
   entries <- xml2::xml_find_all(body, xpath)
-  res <- parse_metadata(entries, lang)
+  res <- parse_bbk_metadata(entries, lang)
   res
 }
 
@@ -282,7 +274,7 @@ bbk_error_body <- function(resp) {
 
 build_request <- function(resource, accept = NULL) {
   request("https://api.statistiken.bundesbank.de/rest") |>
-    req_user_agent("worldbank (https://m-muecke.github.io/worldbank)") |>
+    req_user_agent("bbk (https://m-muecke.github.io/bbk)") |>
     req_headers(`Accept-Language` = "en", accept = accept) |>
     req_url_path_append(resource) |>
     req_error(body = bbk_error_body)
