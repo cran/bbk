@@ -15,19 +15,16 @@
 #' published for information purposes only.
 #' Using the rates for transaction purposes is strongly discouraged.
 #'
-#' @param x `character(1)` one of "latest" or "history". Default "latest".
-#' @returns A `data.frame()` with the reference rates.
+#' @param x (`character(1)`) one of "latest" or "history". Default "latest".
+#' @returns A [data.table::data.table()] with the reference rates.
 #'
 #' @source <https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html>
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' ecb_euro_rates()
 #' }
 ecb_euro_rates <- function(x = c("latest", "history")) {
-  if (!requireNamespace("tidyr", quietly = TRUE)) {
-    stop("tidyr is required to run this function", call. = FALSE)
-  }
   x <- match.arg(x)
   url <- switch(x,
     latest = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref.zip",
@@ -39,13 +36,21 @@ ecb_euro_rates <- function(x = c("latest", "history")) {
   tf <- file.path(tmp, "tempfile.zip")
   curl::curl_download(url, tf)
   file <- utils::unzip(tf, exdir = tmp)
-  res <- utils::read.csv(file)
-
-  res[res == "N/A"] <- NA
-  fmt <- if (nrow(res) > 1L) "%Y-%m-%d" else "%d %B %Y"
-  res$Date <- as.Date(res$Date, format = fmt)
-  res[, -1L] <- lapply(res[, -1L], as.numeric)
-  res <- tidyr::pivot_longer(res, !Date, names_to = "currency", values_to = "rate")
-  names(res) <- tolower(names(res))
-  as_tibble(res)
+  dt <- fread(tf, sep = ",")
+  fmt <- if (nrow(dt) > 1L) "%Y-%m-%d" else "%d %B %Y"
+  dt[, Date := as.Date(Date, format = fmt)]
+  dt[,
+    names(.SD) := lapply(.SD, \(x) ifelse(x == "N/A", NA_real_, x)),
+    .SDcols = is.character
+  ]
+  dt[, names(.SD) := lapply(.SD, as.numeric), .SDcols = !"Date"]
+  dt <- melt(dt,
+    id.vars = "Date",
+    variable.name = "currency",
+    value.name = "rate",
+    variable.factor = FALSE
+  )
+  dt <- na.omit(dt)
+  setnames(dt, tolower)
+  dt
 }

@@ -1,7 +1,5 @@
 #' @keywords internal
-"_PACKAGE"
-
-## usethis namespace: start
+#' @import data.table
 #' @importFrom httr2 req_body_json
 #' @importFrom httr2 req_error
 #' @importFrom httr2 req_headers
@@ -15,8 +13,7 @@
 #' @importFrom httr2 resp_body_string
 #' @importFrom httr2 resp_body_xml
 #' @importFrom httr2 resp_content_type
-#' @importFrom utils read.csv
-## usethis namespace: end
-NULL
+#' @importFrom stats na.omit setNames
+"_PACKAGE"
 
-utils::globalVariables("Date")
+utils::globalVariables(c("name", "Date", "decimals", "value", "duration"))

@@ -10,16 +10,16 @@
 bbk_metadata(type, id = NULL, lang = c("en", "de"))
 }
 \arguments{
-\item{type}{\code{character(1)} the type of metadata to query. One of:
+\item{type}{(\code{character(1)}) the type of metadata to query. One of:
 \code{"datastructure"}, \code{"dataflow"}, \code{"codelist"}, or \code{"concept"}.}
 
-\item{id}{\code{character(1)} id to query. Default \code{NULL}.}
+\item{id}{(\code{character(1)}) id to query. Default \code{NULL}.}
 
-\item{lang}{\code{character(1)} language to query, either \code{"en"} or \code{"de"}.
+\item{lang}{(\code{character(1)}) language to query, either \code{"en"} or \code{"de"}.
 Default \code{"en"}.}
 }
 \value{
-A \code{data.frame()} with the queried metadata.
+A \code{\link[data.table:data.table]{data.table::data.table()}} with the queried metadata.
 The columns are:
 \item{id}{The id of the metadata}
 \item{name}{The name of the metadata}
@@ -29,12 +29,14 @@ Retrieval of the metadata stored in the Bundesbank's time series database.
 Access via the SDMX Web Service API of the Bundesbank.
 }
 \examples{
+\dontshow{if (curl::has_internet()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
 bbk_metadata("datastructure")
 bbk_metadata("dataflow", "BBSIS")
 bbk_metadata("codelist", "CL_BBK_ACIP_ASSET_LIABILITY")
 bbk_metadata("concept", "CS_BBK_BSPL")
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other metadata: 

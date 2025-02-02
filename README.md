@@ -12,10 +12,13 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/bbk)](https://CRAN.R-project.org/package=bbk)
 <!-- badges: end -->
 
-bbk is minimal R client for the [Deutsche
-Bundesbank](https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service)
-and the [European Central Bank
-(ECB)](https://data.ecb.europa.eu/help/api/overview) APIs.
+bbk is minimal R client for the following APIs:
+
+- [Deutsche Bundesbank
+  (BBK)](https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service)
+- [European Central Bank
+  (ECB)](https://data.ecb.europa.eu/help/api/overview)
+- [Swiss National Bank (SNB)](https://data.snb.ch/en)
 
 > In the future, it may be extended to other central banks and financial
 > institutions. Feel free to open an issue if you have a specific
@@ -23,7 +26,7 @@ and the [European Central Bank
 
 ## Installation
 
-You can install the released version of **bbk** from
+You can install the released version of bbk from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
@@ -55,34 +58,50 @@ yield_curve <- bbk_data(
   key = "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A",
   start_period = "2020-01-01"
 )
-yield_curve
-#> # A tibble: 1,163 × 25
-#>   date       key           value title freq  bearer_reg item  valuation currency
-#>   <date>     <chr>         <dbl> <chr> <chr> <chr>      <chr> <chr>     <chr>   
-#> 1 2020-01-02 BBSIS.D.I.ZA… -0.16 Yiel… daily I          ZAR   ZI        EUR     
-#> 2 2020-01-03 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
-#> 3 2020-01-06 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
-#> 4 2020-01-07 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
-#> 5 2020-01-08 BBSIS.D.I.ZA… -0.27 Yiel… daily I          ZAR   ZI        EUR     
-#> # ℹ 1,158 more rows
-#> # ℹ 16 more variables: issuer_class <chr>, listed_sub <chr>,
-#> #   security_class <chr>, maturity <chr>, interest_type <chr>,
-#> #   interest_rate <chr>, redemption <chr>, certificate <chr>, coverage <chr>,
-#> #   rating <chr>, time_format <chr>, decimals <chr>, unit <chr>,
-#> #   unit_mult <chr>, category <chr>, unit_eng <chr>
+#> [1] "data/BBSIS/D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
+str(yield_curve)
+#> Classes 'data.table' and 'data.frame':   1296 obs. of  25 variables:
+#>  $ date          : Date, format: "2020-01-02" "2020-01-03" ...
+#>  $ key           : chr  "BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z."..
+#>  $ value         : num  -0.16 -0.27 -0.27 -0.27 -0.27 -0.22 -0.2 -0.19 -0.17 -..
+#>  $ title         : chr  "Yields, derived from the term structure of interest "..
+#>  $ freq          : chr  "daily" "daily" "daily" "daily" ...
+#>  $ bearer_reg    : chr  "I" "I" "I" "I" ...
+#>  $ item          : chr  "ZAR" "ZAR" "ZAR" "ZAR" ...
+#>  $ valuation     : chr  "ZI" "ZI" "ZI" "ZI" ...
+#>  $ currency      : chr  "EUR" "EUR" "EUR" "EUR" ...
+#>  $ issuer_class  : chr  "S1311" "S1311" "S1311" "S1311" ...
+#>  $ listed_sub    : chr  "B" "B" "B" "B" ...
+#>  $ security_class: chr  "A604" "A604" "A604" "A604" ...
+#>  $ maturity      : chr  "R10XX" "R10XX" "R10XX" "R10XX" ...
+#>  $ interest_type : chr  "R" "R" "R" "R" ...
+#>  $ interest_rate : chr  "A" "A" "A" "A" ...
+#>  $ redemption    : chr  "A" "A" "A" "A" ...
+#>  $ certificate   : chr  "_Z" "_Z" "_Z" "_Z" ...
+#>  $ coverage      : chr  "_Z" "_Z" "_Z" "_Z" ...
+#>  $ rating        : chr  "A" "A" "A" "A" ...
+#>  $ time_format   : chr  "P1D" "P1D" "P1D" "P1D" ...
+#>  $ decimals      : int  2 2 2 2 2 2 2 2 2 2 ...
+#>  $ unit          : chr  "PROZENT" "PROZENT" "PROZENT" "PROZENT" ...
+#>  $ unit_mult     : chr  "0" "0" "0" "0" ...
+#>  $ category      : chr  "GKZR" "GKZR" "GKZR" "GKZR" ...
+#>  $ unit_eng      : chr  "percent" "percent" "percent" "percent" ...
+#>  - attr(*, ".internal.selfref")=<externalptr>
 ```
 
 <img src="man/figures/README-plotting-1.png" width="100%" />
 
 ## Related work
 
+- [SNBdata](https://github.com/enricoschumann/SNBdata): R package for
+  downloading data from the Swiss National Bank (SNB).
 - [bundesbank](https://github.com/enricoschumann/bundesbank): R scripts
   for downloading time-series data from the Bundesbank.
 - [ecb](https://github.com/expersso/ecb): R interface to the European
   Central Bank’s Statistical Data Warehouse (SDW) API.
-- [rsdmx](https://github.com/opensdmx/rsdmx): R package for reading SDMX
-  data and metadata.
-- [readsdmx](https://github.com/mdequeljoe/readsdmx): R package for
-  reading SDMX data and metadata.
 - [pdfetch](https://github.com/abielr/pdfetch): R package for
   downloading economic and financial time series from public sources.
+- [readsdmx](https://github.com/mdequeljoe/readsdmx): R package for
+  reading SDMX data and metadata.
+- [rsdmx](https://github.com/opensdmx/rsdmx): R package for reading SDMX
+  data and metadata.

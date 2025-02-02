@@ -1,9 +1,9 @@
 #' Returns Bundesbank data for a given flow and key
 #'
-#' @param flow `character(1)` flow to query, 5-8 characters.
+#' @param flow (`character(1)`) flow to query, 5-8 characters.
 #'   See [bbk_metadata()] for available dataflows.
-#' @param key `character(1)` key to query.
-#' @param start_period `character(1)` start date of the data. Supported formats:
+#' @param key (`character(1)`) key to query.
+#' @param start_period (`character(1)`) start date of the data. Supported formats:
 #'   - YYYY for annual data (e.g., "2019")
 #'   - YYYY-S\[1-2\] for semi-annual data (e.g., "2019-S1")
 #'   - YYYY-Q\[1-4\] for quarterly data (e.g., "2019-Q1")
@@ -12,23 +12,23 @@
 #'   - YYYY-MM-DD for daily and business data (e.g., "2019-01-01")
 #'   If `NULL`, no start date restriction is applied (data retrieved from the
 #'   earliest available date). Default `NULL`.
-#' @param end_period `character(1)` end date of the data, in the same format as
+#' @param end_period (`character(1)`) end date of the data, in the same format as
 #'   start_period. If `NULL`, no end date restriction is applied (data
 #'   retrieved up to the most recent available date). Default `NULL`.
-#' @param first_n `numeric(1)` number of observations to retrieve from the
+#' @param first_n (`numeric(1)`) number of observations to retrieve from the
 #'   start of the series. If `NULL`, no restriction is applied. Default `NULL`.
-#' @param last_n `numeric(1)` number of observations to retrieve from the end
+#' @param last_n (`numeric(1)`) number of observations to retrieve from the end
 #'  of the series. If `NULL`, no restriction is applied. Default `NULL`.
-#' @returns A `data.frame()` with the requested data.
+#' @returns A [data.table::data.table()] with the requested data.
 #' @source <https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-data>
 #' @family data
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' # fetch all data for a given flow and key
 #' bbk_data("BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A")
 #' # fetch data for multiple keys
-#' bbk_data("BBK01", c("TTA032", "TTA010"))
+#' bbk_data("BBEX3", c("M.ISK.EUR", "USD.CA.AC.A01"))
 #' # specified period (start date-end date) for daily data
 #' bbk_data(
 #'   "BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A",
@@ -48,7 +48,8 @@ bbk_data <- function(flow,
                      first_n = NULL,
                      last_n = NULL) {
   stopifnot(
-    is_string(flow), nchar(flow) %in% 5:8,
+    is_string(flow),
+    nchar(flow) %in% 5:8,
     is_character_or_null(key),
     is_string_or_null(start_period),
     is_string_or_null(end_period),
@@ -61,8 +62,9 @@ bbk_data <- function(flow,
     resource <- sprintf("data/%s", flow)
   } else {
     key <- toupper(key)
-    key <- paste(key, collapse = "+")
+    key <- paste0(key, collapse = "+")
     resource <- sprintf("data/%s/%s", flow, key)
+    print(resource)
   }
   body <- make_request(
     resource = resource,
@@ -72,7 +74,7 @@ bbk_data <- function(flow,
     lastNObservations = last_n
   )
   data <- parse_bbk_data(body)
-  as_tibble(data)
+  data
 }
 
 #' Returns the Bundesbank time serie that is found with the specified time series key
@@ -83,7 +85,7 @@ bbk_data <- function(flow,
 #' @family data
 #' @seealso [bbk_data()] for an endpoint with more options.
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' bbk_series("BBEX3.M.DKK.EUR.BB.AC.A01")
 #' bbk_series("BBAF3.Q.F41.S121.DE.S1.W0.LE.N._X.B")
@@ -97,7 +99,7 @@ bbk_series <- function(key) {
     resp_body_raw()
 
   data <- parse_bbk_series(body, key)
-  as_tibble(data)
+  data
 }
 
 #' Returns the available Bundesbank metadata
@@ -105,19 +107,19 @@ bbk_series <- function(key) {
 #' Retrieval of the metadata stored in the Bundesbank's time series database.
 #' Access via the SDMX Web Service API of the Bundesbank.
 #'
-#' @param type `character(1)` the type of metadata to query. One of:
-#' `"datastructure"`, `"dataflow"`, `"codelist"`, or `"concept"`.
-#' @param id `character(1)` id to query. Default `NULL`.
-#' @param lang `character(1)` language to query, either `"en"` or `"de"`.
+#' @param type (`character(1)`) the type of metadata to query. One of:
+#'   `"datastructure"`, `"dataflow"`, `"codelist"`, or `"concept"`.
+#' @param id (`character(1)`) id to query. Default `NULL`.
+#' @param lang (`character(1)`) language to query, either `"en"` or `"de"`.
 #'   Default `"en"`.
-#' @returns A `data.frame()` with the queried metadata.
+#' @returns A [data.table::data.table()] with the queried metadata.
 #' The columns are:
 #'   \item{id}{The id of the metadata}
 #'   \item{name}{The name of the metadata}
 #' @source <https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-metadata>
 #' @family metadata
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' bbk_metadata("datastructure")
 #' bbk_metadata("dataflow", "BBSIS")
@@ -132,9 +134,9 @@ bbk_metadata <- function(type, id = NULL, lang = c("en", "de")) {
     codelist = list("codelist/BBK", "//structure:Codelist"),
     concept = list("conceptscheme/BBK", "//structure:ConceptScheme")
   )
-  res <- do.call(fetch_bbk_metadata, c(args, list(id, lang)))
-  res$name <- na_if_empty(res$name)
-  as_tibble(res)
+  dt <- do.call(fetch_bbk_metadata, c(args, list(id, lang)))
+  dt[!nzchar(name), name := NA_character_]
+  dt[]
 }
 
 parse_bbk_series <- function(body, key) {
@@ -148,10 +150,10 @@ parse_bbk_series <- function(body, key) {
   files <- list.files(tmp, full.names = TRUE)
   path <- grep("\\.csv$", files, value = TRUE)[[1L]]
 
-  res <- read.csv(path, header = FALSE, skip = 11L)[, 1:2] |>
-    stats::setNames(c("date", "value"))
-  res$value <- na_if_empty(res$value, ".")
-  res <- stats::na.omit(res)
+  dt <- fread(path, header = FALSE, skip = 11L)[, 1:2] |>
+    setnames(c("date", "value"))
+  dt[value == ".", value := NA_character_]
+  dt <- na.omit(dt)
 
   metadata <- readLines(path, n = 10L)
   title <- sub("^[\",]+", "", metadata[[2L]])
@@ -174,13 +176,13 @@ parse_bbk_series <- function(body, key) {
     P1Y = "annual",
     P1D = "daily"
   )
-  res$date <- parse_date(res$date, freq)
-  res <- cbind(
-    res, key, title, freq, category, unit, unit_mult, last_update, comment,
+  dt[, date := parse_date(date, freq)]
+  dt <- cbind(
+    dt, key, title, freq, category, unit, unit_mult, last_update, comment,
     source = src
   )
-  res <- res[union(c("date", "key", "value", "title", "freq"), names(res))]
-  res
+  setcolorder(dt, c("date", "key", "value", "title", "freq"))
+  dt[]
 }
 
 parse_bbk_metadata <- function(x, lang) {
@@ -189,9 +191,9 @@ parse_bbk_metadata <- function(x, lang) {
     nms <- node |>
       xml2::xml_find_all(sprintf(".//common:Name[@xml:lang='%s']", lang)) |>
       xml2::xml_text()
-    data.frame(id = id, name = nms, check.names = FALSE)
+    data.table(id = id, name = nms)
   })
-  do.call(rbind, res)
+  rbindlist(res)
 }
 
 parse_bbk_data <- function(body) {
@@ -205,7 +207,7 @@ parse_bbk_data <- function(body) {
       tolower()
     series_key <- series_key |>
       xml2::xml_attr("value") |>
-      stats::setNames(nms) |>
+      setNames(nms) |>
       as.list()
 
     attrs <- x |>
@@ -218,7 +220,7 @@ parse_bbk_data <- function(body) {
     nms <- replace(nms, nms == "bbk_id", "key")
     attrs <- attrs |>
       xml2::xml_attr("value") |>
-      stats::setNames(nms) |>
+      setNames(nms) |>
       as.list()
 
     data <- c(series_key, attrs)
@@ -245,11 +247,12 @@ parse_bbk_data <- function(body) {
       xml2::xml_attr("value") |>
       as.numeric()
 
-    as.data.frame(data)
+    as.data.table(data)
   })
-  res <- do.call(rbind, res)
-  res <- res[union(c("date", "key", "value", "title", "freq"), names(res))]
-  res
+  dt <- rbindlist(res)
+  dt[, decimals := as.integer(decimals)]
+  setcolorder(dt, c("date", "key", "value", "title", "freq"))
+  dt[]
 }
 
 fetch_bbk_metadata <- function(resource, xpath, id = NULL, lang = "en") {
@@ -261,17 +264,17 @@ fetch_bbk_metadata <- function(resource, xpath, id = NULL, lang = "en") {
   }
   body <- make_request(resource)
   entries <- xml2::xml_find_all(body, xpath)
-  res <- parse_bbk_metadata(entries, lang)
-  res
+  dt <- parse_bbk_metadata(entries, lang)
+  dt
 }
 
 bbk_error_body <- function(resp) {
   content_type <- resp_content_type(resp)
   if (identical(content_type, "application/json")) {
     body <- resp_body_json(resp)
-    message <- body$title
+    msg <- body$title
     docs <- "See docs at <https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/status-codes/status-codes-855918>" # nolint
-    c(message, docs)
+    c(msg, docs)
   }
 }
 

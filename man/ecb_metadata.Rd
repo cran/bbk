@@ -10,15 +10,15 @@
 ecb_metadata(type, agency = NULL, id = NULL)
 }
 \arguments{
-\item{type}{\code{character(1)} the type of metadata to query. One of:
+\item{type}{(\code{character(1)}) the type of metadata to query. One of:
 \code{"datastructure"}, \code{"dataflow"}, \code{"codelist"}, or \code{"concept"}.}
 
-\item{agency}{\code{character(1)} id of the agency to query. Default \code{NULL}.}
+\item{agency}{(\code{character(1)}) id of the agency to query. Default \code{NULL}.}
 
-\item{id}{\code{character(1)} id of the resource to query. Default \code{NULL}.}
+\item{id}{(\code{character(1)}) id of the resource to query. Default \code{NULL}.}
 }
 \value{
-A \code{data.frame()} with the queried metadata.
+A \code{\link[data.table:data.table]{data.table::data.table()}} with the queried metadata.
 The columns are:
 \item{agency}{The agency of the metadata}
 \item{id}{The id of the metadata}
@@ -29,12 +29,14 @@ Retrieval of the metadata stored in the ECB's time series database.
 Access via the SDMX Web Service API of the ECB
 }
 \examples{
+\dontshow{if (curl::has_internet()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
 ecb_metadata("datastructure")
 ecb_metadata("datastructure", "ECB")
 ecb_metadata("datastructure", "ECB", "ECB_EXR1")
 ecb_metadata("datastructure", id = "ECB_EXR1")
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other metadata: 

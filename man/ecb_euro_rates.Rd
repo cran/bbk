@@ -10,10 +10,10 @@
 ecb_euro_rates(x = c("latest", "history"))
 }
 \arguments{
-\item{x}{\code{character(1)} one of "latest" or "history". Default "latest".}
+\item{x}{(\code{character(1)}) one of "latest" or "history". Default "latest".}
 }
 \value{
-A \code{data.frame()} with the reference rates.
+A \code{\link[data.table:data.table]{data.table::data.table()}} with the reference rates.
 }
 \description{
 Fetch the latest or historical Euro foreign exchange reference rates from
@@ -32,7 +32,9 @@ published for information purposes only.
 Using the rates for transaction purposes is strongly discouraged.
 }
 \examples{
+\dontshow{if (curl::has_internet()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
 ecb_euro_rates()
 }
+\dontshow{\}) # examplesIf}
 }

@@ -17,11 +17,11 @@ ecb_data(
 )
 }
 \arguments{
-\item{flow}{\code{character(1)} flow to query.}
+\item{flow}{(\code{character(1)}) flow to query.}
 
-\item{key}{\code{character(1)} key to query.}
+\item{key}{(\code{character(1)}) key to query.}
 
-\item{start_period}{\code{character(1)} start date of the data. Supported formats:
+\item{start_period}{(\code{character(1)}) start date of the data. Supported formats:
 \itemize{
 \item YYYY for annual data (e.g., "2019")
 \item YYYY-S[1-2] for semi-annual data (e.g., "2019-S1")
@@ -33,30 +33,33 @@ If \code{NULL}, no start date restriction is applied (data retrieved from the
 earliest available date). Default \code{NULL}.
 }}
 
-\item{end_period}{\code{character(1)} end date of the data, in the same format as
+\item{end_period}{(\code{character(1)}) end date of the data, in the same format as
 start_period. If \code{NULL}, no end date restriction is applied (data
 retrieved up to the most recent available date). Default \code{NULL}.}
 
-\item{first_n}{\code{numeric(1)} number of observations to retrieve from the
+\item{first_n}{(\code{numeric(1)}) number of observations to retrieve from the
 start of the series. If \code{NULL}, no restriction is applied. Default \code{NULL}.}
 
-\item{last_n}{\code{numeric(1)} number of observations to retrieve from the end
+\item{last_n}{(\code{numeric(1)}) number of observations to retrieve from the end
 of the series. If \code{NULL}, no restriction is applied. Default \code{NULL}.}
 }
 \description{
 Returns ECB data for a given flow and key
 }
 \examples{
+\dontshow{if (curl::has_internet()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
 # fetch US dollar/Euro exchange rate
 ecb_data("EXR", "D.USD.EUR.SP00.A")
 # fetch data for multiple keys
 ecb_data("EXR", c("D.USD", "JPY.EUR.SP00.A"))
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other data: 
 \code{\link{bbk_data}()},
-\code{\link{bbk_series}()}
+\code{\link{bbk_series}()},
+\code{\link{snb_data}()}
 }
 \concept{data}
