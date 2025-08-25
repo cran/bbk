@@ -1,28 +1,35 @@
 Package: bbk
 Title: Client for Central Bank APIs
-Version: 0.6.0
+Version: 0.7.0
 Authors@R: 
     person("Maximilian", "Mücke", , "muecke.maximilian@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-9432-9795"))
 Description: A client for retrieving data and metadata from major central
     bank APIs. It supports access to the 'Bundesbank SDMX Web Service API'
     (<https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-data>),
-    the 'Swiss National Bank Data Portal' (<https://data.snb.ch/en>), and the
+    the 'Swiss National Bank Data Portal' (<https://data.snb.ch/en>), the
     'European Central Bank Data Portal API'
-    (<https://data.ecb.europa.eu/help/api/overview>).
+    (<https://data.ecb.europa.eu/help/api/overview>), the 'Bank of England
+    Interactive Statistical Database'
+    (<https://www.bankofengland.co.uk/boeapps/database>), the 'Banco de
+    España API'
+    (<https://www.bde.es/webbe/en/estadisticas/recursos/api-estadisticas-bde.html>),
+    and the 'Banque de France Web Service'
+    (<https://webstat.banque-france.fr/en/pages/guide-migration-api/>).
 License: MIT + file LICENSE
 URL: https://m-muecke.github.io/bbk/, https://github.com/m-muecke/bbk
 BugReports: https://github.com/m-muecke/bbk/issues
 Depends: R (>= 4.1.0)
-Imports: curl, data.table (>= 1.16.0), httr2 (>= 1.0.0), jsonlite,
-        stats, utils, xml2
+Imports: checkmate, curl, data.table (>= 1.17.0), httr2 (>= 1.0.0),
+        jsonlite, stats, utils, xml2
 Suggests: ggplot2, scales, testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-02-02 11:45:18 UTC; mmuecke
-Author: Maximilian Mücke [aut, cre] (<https://orcid.org/0009-0000-9432-9795>)
+Packaged: 2025-08-25 08:29:22 UTC; mmuecke
+Author: Maximilian Mücke [aut, cre] (ORCID:
+    <https://orcid.org/0009-0000-9432-9795>)
 Maintainer: Maximilian Mücke <muecke.maximilian@gmail.com>
 Repository: CRAN
-Date/Publication: 2025-02-02 22:40:02 UTC
+Date/Publication: 2025-08-25 08:40:13 UTC

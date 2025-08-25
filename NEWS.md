@@ -1,3 +1,12 @@
+# bbk 0.7.0
+
+* Switch to checkmate for input validation.
+* Documentation improvements.
+* Support for Bank of England (BoE) data.
+* Support for Banque de France (BdF) data.
+* Support for Banco de España (BdE) data.
+* Support for Österreichische Nationalbank (OeNB) data.
+
 # bbk 0.6.0
 
 * Migration to data.table package. Internal data manipulation is now done using

@@ -2,29 +2,29 @@
 % Please edit documentation in R/ecb-euro-rates.R
 \name{ecb_euro_rates}
 \alias{ecb_euro_rates}
-\title{Euro foreign exchange reference rates}
+\title{Fetch Euro foreign exchange reference rates}
 \source{
 \url{https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html}
 }
 \usage{
-ecb_euro_rates(x = c("latest", "history"))
+ecb_euro_rates(x = "latest")
 }
 \arguments{
-\item{x}{(\code{character(1)}) one of "latest" or "history". Default "latest".}
+\item{x}{(\code{character(1)})\cr
+One of \code{"latest"} or \code{"history"}. Default \code{"latest"}.}
 }
 \value{
 A \code{\link[data.table:data.table]{data.table::data.table()}} with the reference rates.
 }
 \description{
 Fetch the latest or historical Euro foreign exchange reference rates from
-the European Central Bank.
+the European Central Bank (ECB).
 }
 \details{
 Note you can achieve the same by calling the \code{\link[=ecb_data]{ecb_data()}} function with the right
 parameters for each currency.
 
-The reference rates are usually updated at around 16:00 CET every working day,
-except on \href{https://www.ecb.europa.eu/ecb/contacts/working-hours/html/index.en.html}{TARGET closing days}.
+The reference rates are usually updated at around 16:00 CET every working day, except on \href{https://www.ecb.europa.eu/ecb/contacts/working-hours/html/index.en.html}{TARGET closing days}.
 
 They are based on the daily concertation procedure between central banks across
 Europe, which normally takes place around 14:10 CET. The reference rates are

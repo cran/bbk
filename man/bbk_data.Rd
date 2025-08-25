@@ -2,7 +2,7 @@
 % Please edit documentation in R/bbk.R
 \name{bbk_data}
 \alias{bbk_data}
-\title{Returns Bundesbank data for a given flow and key}
+\title{Fetch Deutsche Bundesbank (BBk) data}
 \source{
 \url{https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-data}
 }
@@ -17,38 +17,43 @@ bbk_data(
 )
 }
 \arguments{
-\item{flow}{(\code{character(1)}) flow to query, 5-8 characters.
-See \code{\link[=bbk_metadata]{bbk_metadata()}} for available dataflows.}
+\item{flow}{(\code{character(1)})\cr
+The flow to query, 5-8 characters. See \code{\link[=bbk_metadata]{bbk_metadata()}} for available dataflows.}
 
-\item{key}{(\code{character(1)}) key to query.}
+\item{key}{(\code{character()})\cr
+The series keys to query.}
 
-\item{start_period}{(\code{character(1)}) start date of the data. Supported formats:
+\item{start_period}{(\code{NULL} | \code{character(1)} | \code{integer(1)})\cr
+The start date of the data. Supported formats:
 \itemize{
-\item YYYY for annual data (e.g., "2019")
-\item YYYY-S[1-2] for semi-annual data (e.g., "2019-S1")
-\item YYYY-Q[1-4] for quarterly data (e.g., "2019-Q1")
-\item YYYY-MM for monthly data (e.g., "2019-01")
-\item YYYY-W[01-53] for weekly data (e.g., "2019-W01")
-\item YYYY-MM-DD for daily and business data (e.g., "2019-01-01")
-If \code{NULL}, no start date restriction is applied (data retrieved from the
-earliest available date). Default \code{NULL}.
-}}
+\item YYYY for annual data (e.g., `2019``)
+\item YYYY-S[1-2] for semi-annual data (e.g., \code{"2019-S1"})
+\item YYYY-Q[1-4] for quarterly data (e.g., \code{"2019-Q1"})
+\item YYYY-MM for monthly data (e.g., \code{"2019-01"})
+\item YYYY-W[01-53] for weekly data (e.g., \code{"2019-W01"})
+\item YYYY-MM-DD for daily and business data (e.g., \code{"2019-01-01"})
+}
 
-\item{end_period}{(\code{character(1)}) end date of the data, in the same format as
-start_period. If \code{NULL}, no end date restriction is applied (data
-retrieved up to the most recent available date). Default \code{NULL}.}
+If \code{NULL}, no start date restriction is applied (data retrieved from the earliest available
+date). Default \code{NULL}.}
 
-\item{first_n}{(\code{numeric(1)}) number of observations to retrieve from the
-start of the series. If \code{NULL}, no restriction is applied. Default \code{NULL}.}
+\item{end_period}{(\code{NULL} | \code{character(1)} | \code{integer(1)})\cr
+The end date of the data, in the same format as start_period. If \code{NULL}, no end date
+restriction is applied (data retrieved up to the most recent available date). Default \code{NULL}.}
 
-\item{last_n}{(\code{numeric(1)}) number of observations to retrieve from the end
-of the series. If \code{NULL}, no restriction is applied. Default \code{NULL}.}
+\item{first_n}{(\code{NULL} | \code{numeric(1)}) \cr
+Number of observations to retrieve from the start of the series. If \code{NULL}, no restriction is
+applied. Default \code{NULL}.}
+
+\item{last_n}{(\code{NULL} | \code{numeric(1)})\cr
+Number of observations to retrieve from the end of the series. If \code{NULL}, no restriction is
+applied. Default \code{NULL}.}
 }
 \value{
 A \code{\link[data.table:data.table]{data.table::data.table()}} with the requested data.
 }
 \description{
-Returns Bundesbank data for a given flow and key
+Retrieve time series data from the Bundesbank SDMX Web Service.
 }
 \examples{
 \dontshow{if (curl::has_internet()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
@@ -74,7 +79,13 @@ bbk_data(
 \seealso{
 Other data: 
 \code{\link{bbk_series}()},
+\code{\link{bde_data}()},
+\code{\link{bdf_codelist}()},
+\code{\link{bdf_data}()},
+\code{\link{bdf_dataset}()},
+\code{\link{boe_data}()},
 \code{\link{ecb_data}()},
+\code{\link{onb_data}()},
 \code{\link{snb_data}()}
 }
 \concept{data}

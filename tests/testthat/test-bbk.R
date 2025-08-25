@@ -37,30 +37,42 @@ test_that("bbk_data input validation works", {
 test_that("parse_bbk_data works", {
   body <- xml2::read_xml(test_path("fixtures", "bbk-data.xml"))
   actual <- parse_bbk_data(body)
-  expect_s3_class(actual, "data.frame")
+  expect_data_table(actual)
   expect_gt(nrow(actual), 0L)
   expect_identical(
-    unique(actual$key), "BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
+    unique(actual$key),
+    "BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
   )
-  expect_s3_class(actual$date, "Date")
+  expect_date(actual$date)
 })
 
 test_that("parse_bbk_series works", {
   body <- readRDS(test_path("fixtures", "bbk-series.rds"))
   actual <- parse_bbk_series(
-    body, "BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
+    body,
+    "BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
   )
   nms <- c(
-    "date", "key", "value", "title", "freq", "category", "unit", "unit_mult",
-    "last_update", "comment", "source"
+    "key",
+    "date",
+    "value",
+    "title",
+    "freq",
+    "category",
+    "unit",
+    "unit_mult",
+    "last_update",
+    "comment",
+    "source"
   )
-  expect_s3_class(actual, "data.frame")
-  expect_named(actual, nms)
+  expect_data_table(actual)
+  expect_subset(names(actual), nms)
   expect_gt(nrow(actual), 0L)
   expect_identical(
-    unique(actual$key), "BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
+    unique(actual$key),
+    "BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
   )
-  expect_s3_class(actual$date, "Date")
+  expect_date(actual$date)
 })
 
 test_that("bbk_series input validation works", {

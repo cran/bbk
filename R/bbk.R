@@ -1,24 +1,31 @@
-#' Returns Bundesbank data for a given flow and key
+#' Fetch Deutsche Bundesbank (BBk) data
 #'
-#' @param flow (`character(1)`) flow to query, 5-8 characters.
-#'   See [bbk_metadata()] for available dataflows.
-#' @param key (`character(1)`) key to query.
-#' @param start_period (`character(1)`) start date of the data. Supported formats:
-#'   - YYYY for annual data (e.g., "2019")
-#'   - YYYY-S\[1-2\] for semi-annual data (e.g., "2019-S1")
-#'   - YYYY-Q\[1-4\] for quarterly data (e.g., "2019-Q1")
-#'   - YYYY-MM for monthly data (e.g., "2019-01")
-#'   - YYYY-W\[01-53\] for weekly data (e.g., "2019-W01")
-#'   - YYYY-MM-DD for daily and business data (e.g., "2019-01-01")
-#'   If `NULL`, no start date restriction is applied (data retrieved from the
-#'   earliest available date). Default `NULL`.
-#' @param end_period (`character(1)`) end date of the data, in the same format as
-#'   start_period. If `NULL`, no end date restriction is applied (data
-#'   retrieved up to the most recent available date). Default `NULL`.
-#' @param first_n (`numeric(1)`) number of observations to retrieve from the
-#'   start of the series. If `NULL`, no restriction is applied. Default `NULL`.
-#' @param last_n (`numeric(1)`) number of observations to retrieve from the end
-#'  of the series. If `NULL`, no restriction is applied. Default `NULL`.
+#' Retrieve time series data from the Bundesbank SDMX Web Service.
+#'
+#' @param flow (`character(1)`)\cr
+#'   The flow to query, 5-8 characters. See [bbk_metadata()] for available dataflows.
+#' @param key (`character()`)\cr
+#'   The series keys to query.
+#' @param start_period (`NULL` | `character(1)` | `integer(1)`)\cr
+#'   The start date of the data. Supported formats:
+#'   * YYYY for annual data (e.g., `2019``)
+#'   * YYYY-S\[1-2\] for semi-annual data (e.g., `"2019-S1"`)
+#'   * YYYY-Q\[1-4\] for quarterly data (e.g., `"2019-Q1"`)
+#'   * YYYY-MM for monthly data (e.g., `"2019-01"`)
+#'   * YYYY-W\[01-53\] for weekly data (e.g., `"2019-W01"`)
+#'   * YYYY-MM-DD for daily and business data (e.g., `"2019-01-01"`)
+#'
+#'   If `NULL`, no start date restriction is applied (data retrieved from the earliest available
+#'   date). Default `NULL`.
+#' @param end_period (`NULL` | `character(1)` | `integer(1)`)\cr
+#'   The end date of the data, in the same format as start_period. If `NULL`, no end date
+#'   restriction is applied (data retrieved up to the most recent available date). Default `NULL`.
+#' @param first_n (`NULL` | `numeric(1)`) \cr
+#'   Number of observations to retrieve from the start of the series. If `NULL`, no restriction is
+#'   applied. Default `NULL`.
+#' @param last_n (`NULL` | `numeric(1)`)\cr
+#'   Number of observations to retrieve from the end of the series. If `NULL`, no restriction is
+#'   applied. Default `NULL`.
 #' @returns A [data.table::data.table()] with the requested data.
 #' @source <https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-data>
 #' @family data
@@ -41,43 +48,42 @@
 #'   start_period = "2024-04-01"
 #' )
 #' }
-bbk_data <- function(flow,
-                     key = NULL,
-                     start_period = NULL,
-                     end_period = NULL,
-                     first_n = NULL,
-                     last_n = NULL) {
-  stopifnot(
-    is_string(flow),
-    nchar(flow) %in% 5:8,
-    is_character_or_null(key),
-    is_string_or_null(start_period),
-    is_string_or_null(end_period),
-    is_count_or_null(first_n),
-    is_count_or_null(last_n)
-  )
+bbk_data <- function(
+  flow,
+  key = NULL,
+  start_period = NULL,
+  end_period = NULL,
+  first_n = NULL,
+  last_n = NULL
+) {
+  assert_string(flow, min.chars = 5L, max.chars = 8L)
+  assert_character(key, min.chars = 1L, null.ok = TRUE)
+  assert_period(start_period)
+  assert_period(end_period)
+  first_n <- assert_count(first_n, null.ok = TRUE, positive = TRUE, coerce = TRUE)
+  last_n <- assert_count(last_n, null.ok = TRUE, positive = TRUE, coerce = TRUE)
 
   flow <- toupper(flow)
   if (is.null(key)) {
     resource <- sprintf("data/%s", flow)
   } else {
     key <- toupper(key)
-    key <- paste0(key, collapse = "+")
+    key <- paste(key, collapse = "+")
     resource <- sprintf("data/%s/%s", flow, key)
-    print(resource)
   }
-  body <- make_request(
+  xml <- bbk_make_request(
     resource = resource,
     startPeriod = start_period,
     endPeriod = end_period,
     firstNObservations = first_n,
     lastNObservations = last_n
   )
-  data <- parse_bbk_data(body)
-  data
+  parse_bbk_data(xml)
 }
 
-#' Returns the Bundesbank time serie that is found with the specified time series key
+#' Fetch the Deutsche Bundesbank (BBk) series
+#'
+#' Retrieve a single series by its key via the Bundesbank SDMX Web Service.
 #'
 #' @inherit bbk_data source
 #' @inheritParams bbk_data
@@ -92,27 +98,26 @@ bbk_data <- function(flow,
 #' bbk_series("BBBK11.D.TTA000")
 #' }
 bbk_series <- function(key) {
-  stopifnot(is_string(key))
-  body <- build_request("data/tsIdList", accept = "application/vnd.bbk.data+csv-zip") |>
+  assert_string(key, min.chars = 1L)
+  body <- bbk_build_request("data/tsIdList", accept = "application/vnd.bbk.data+csv-zip") |>
     req_body_json(key, auto_unbox = FALSE) |>
     req_perform() |>
     resp_body_raw()
-
-  data <- parse_bbk_series(body, key)
-  data
+  parse_bbk_series(body, key)
 }
 
-#' Returns the available Bundesbank metadata
+#' Fetch Deutsche Bundesbank (BBk) metadata
 #'
-#' Retrieval of the metadata stored in the Bundesbank's time series database.
-#' Access via the SDMX Web Service API of the Bundesbank.
+#' Retrieve metadata from the Bundesbank time series database via the SDMX Web Service.
 #'
-#' @param type (`character(1)`) the type of metadata to query. One of:
-#'   `"datastructure"`, `"dataflow"`, `"codelist"`, or `"concept"`.
-#' @param id (`character(1)`) id to query. Default `NULL`.
-#' @param lang (`character(1)`) language to query, either `"en"` or `"de"`.
-#'   Default `"en"`.
-#' @returns A [data.table::data.table()] with the queried metadata.
+#' @param type (`character(1)`)\cr
+#'   The type of metadata to query.
+#'   One of: `"datastructure"`, `"dataflow"`, `"codelist"`, or `"concept"`.
+#' @param id (`NULL` | `character(1)`)\cr
+#'   The id to query. Default `NULL`.
+#' @param lang (`character(1)`)\cr
+#'   Language to query, either `"en"` or `"de"`. Default `"en"`.
+#' @returns A [data.table::data.table()] with the requested metadata.
 #' The columns are:
 #'   \item{id}{The id of the metadata}
 #'   \item{name}{The name of the metadata}
@@ -126,17 +131,18 @@ bbk_series <- function(key) {
 #' bbk_metadata("codelist", "CL_BBK_ACIP_ASSET_LIABILITY")
 #' bbk_metadata("concept", "CS_BBK_BSPL")
 #' }
-bbk_metadata <- function(type, id = NULL, lang = c("en", "de")) {
-  type <- match.arg(type, c("datastructure", "dataflow", "codelist", "concept"))
-  args <- switch(type,
+bbk_metadata <- function(type, id = NULL, lang = "en") {
+  assert_choice(type, c("datastructure", "dataflow", "codelist", "concept"))
+  args <- switch(
+    type,
     datastructure = list("datastructure/BBK", "//structure:DataStructure"),
     dataflow = list("dataflow/BBK", "//structure:Dataflow"),
     codelist = list("codelist/BBK", "//structure:Codelist"),
     concept = list("conceptscheme/BBK", "//structure:ConceptScheme")
   )
   dt <- do.call(fetch_bbk_metadata, c(args, list(id, lang)))
-  dt[!nzchar(name), name := NA_character_]
-  dt[]
+  name <- NULL
+  dt[!nzchar(name), name := NA_character_][]
 }
 
 parse_bbk_series <- function(body, key) {
@@ -150,8 +156,9 @@ parse_bbk_series <- function(body, key) {
   files <- list.files(tmp, full.names = TRUE)
   path <- grep("\\.csv$", files, value = TRUE)[[1L]]
 
-  dt <- fread(path, header = FALSE, skip = 11L)[, 1:2] |>
-    setnames(c("date", "value"))
+  dt <- fread(file = path, header = FALSE, skip = 11L)[, 1:2]
+  setnames(dt, c("date", "value"))
+  value <- NULL
   dt[value == ".", value := NA_character_]
   dt <- na.omit(dt)
 
@@ -170,7 +177,8 @@ parse_bbk_series <- function(body, key) {
   comment <- sub("^\"", "", comment)
   src <- extract_metadata(metadata, "^Source \\(in english\\),")
 
-  freq <- switch(freq,
+  freq <- switch(
+    freq,
     P1M = "monthly",
     P3M = "quarterly",
     P1Y = "annual",
@@ -178,26 +186,33 @@ parse_bbk_series <- function(body, key) {
   )
   dt[, date := parse_date(date, freq)]
   dt <- cbind(
-    dt, key, title, freq, category, unit, unit_mult, last_update, comment,
+    dt,
+    key,
+    title,
+    freq,
+    category,
+    unit,
+    unit_mult,
+    last_update,
+    comment,
     source = src
   )
-  setcolorder(dt, c("date", "key", "value", "title", "freq"))
+  setcolorder(dt, the$col_order, skip_absent = TRUE)
   dt[]
 }
 
 parse_bbk_metadata <- function(x, lang) {
-  res <- lapply(x, function(node) {
+  rbindlist(lapply(x, function(node) {
     id <- xml2::xml_attr(node, "id")
     nms <- node |>
       xml2::xml_find_all(sprintf(".//common:Name[@xml:lang='%s']", lang)) |>
       xml2::xml_text()
     data.table(id = id, name = nms)
-  })
-  rbindlist(res)
+  }))
 }
 
-parse_bbk_data <- function(body) {
-  series <- body |> xml2::xml_find_all(".//generic:Series")
+parse_bbk_data <- function(xml) {
+  series <- xml2::xml_find_all(xml, ".//generic:Series")
   res <- lapply(series, function(x) {
     series_key <- x |>
       xml2::xml_find_first(".//generic:SeriesKey") |>
@@ -229,14 +244,15 @@ parse_bbk_data <- function(body) {
     nms <- sub("^std_", "", nms)
     names(data) <- replace(nms, nms == "web_category", "category")
 
-    data$freq <- switch(data$time_format,
+    data$freq <- switch(
+      data$time_format,
       P1M = "monthly",
       P3M = "quarterly",
       P1Y = "annual",
       P1D = "daily"
     )
 
-    entries <- xml2::xml_find_all(body, "//generic:Obs[generic:ObsValue]")
+    entries <- xml2::xml_find_all(xml, "//generic:Obs[generic:ObsValue]")
     data$date <- entries |>
       xml2::xml_find_all(".//generic:ObsDimension") |>
       xml2::xml_attr("value") |>
@@ -250,35 +266,35 @@ parse_bbk_data <- function(body) {
     as.data.table(data)
   })
   dt <- rbindlist(res)
+  decimals <- NULL
   dt[, decimals := as.integer(decimals)]
-  setcolorder(dt, c("date", "key", "value", "title", "freq"))
+  setcolorder(dt, the$col_order, skip_absent = TRUE)
   dt[]
 }
 
 fetch_bbk_metadata <- function(resource, xpath, id = NULL, lang = "en") {
-  lang <- match.arg(lang, c("en", "de"))
-  stopifnot(is_string_or_null(id))
+  assert_choice(lang, c("en", "de"))
+  assert_string(id, min.chars = 1L, null.ok = TRUE)
+
   resource <- paste("metadata", resource, sep = "/")
   if (!is.null(id)) {
     resource <- paste(resource, toupper(id), sep = "/")
   }
-  body <- make_request(resource)
-  entries <- xml2::xml_find_all(body, xpath)
-  dt <- parse_bbk_metadata(entries, lang)
-  dt
+  xml <- bbk_make_request(resource)
+  entries <- xml2::xml_find_all(xml, xpath)
+  parse_bbk_metadata(entries, lang)
 }
 
 bbk_error_body <- function(resp) {
   content_type <- resp_content_type(resp)
   if (identical(content_type, "application/json")) {
-    body <- resp_body_json(resp)
-    msg <- body$title
+    msg <- resp_body_json(resp)$title
     docs <- "See docs at <https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/status-codes/status-codes-855918>" # nolint
     c(msg, docs)
   }
 }
 
-build_request <- function(resource, accept = NULL) {
+bbk_build_request <- function(resource, accept = NULL) {
   request("https://api.statistiken.bundesbank.de/rest") |>
     req_user_agent("bbk (https://m-muecke.github.io/bbk)") |>
     req_headers(`Accept-Language` = "en", accept = accept) |>
@@ -286,8 +302,8 @@ build_request <- function(resource, accept = NULL) {
     req_error(body = bbk_error_body)
 }
 
-make_request <- function(resource, ...) {
-  build_request(resource) |>
+bbk_make_request <- function(resource, ...) {
+  bbk_build_request(resource) |>
     req_url_query(...) |>
     req_perform() |>
     resp_body_xml()
