@@ -2,7 +2,7 @@
 #'
 #' Retrieve time series data from the BdF Webstat API.
 #'
-#' @param ... (any)\cr
+#' @param ... (`any`)\cr
 #'   Extra arguments appended to the API request.
 #'   Combined with the default arguments with [modifyList()].
 #' @param key (`NULL` | `character(1)`)\cr
@@ -21,10 +21,13 @@
 #' @examples
 #' \dontrun{
 #' bdf_data(key = "CONJ2.M.R24.T.SM.0RG24.EFTPM100.10")
+#'
 #' # inflation rate
 #' bdf_data(key = "ICP.M.FR.N.000000.4.ANR")
+#'
 #' # or with a date filter
 #' bdf_data(key = "ICP.M.FR.N.000000.4.ANR", start_date = "2025-01-01", end_date = "2025-06-30")
+#'
 #' # advanced filter with where clause
 #' bdf_data(key = "ICP.M.FR.N.000000.4.ANR", where = "time_period_start >= date'2025-01-01'")
 #' }
@@ -64,6 +67,7 @@ bdf_data <- function(..., key = NULL, start_date = NULL, end_date = NULL, api_ke
 #' @examples
 #' \dontrun{
 #' bdf_dataset()
+#'
 #' # structure of a dataset
 #' bdf_dataset(where = "dataset_id = 'CONJ2'")
 #' }
@@ -82,6 +86,7 @@ bdf_dataset <- function(...) {
 #' @examples
 #' \dontrun{
 #' bdf_codelist()
+#'
 #' # filter for a specific codelist
 #' bdf_codelist(where = "codelist_id = 'CL_FREQ'")
 #' }
@@ -90,12 +95,12 @@ bdf_codelist <- function(...) {
 }
 
 parse_bdf_data <- function(dt) {
-  nms <- names(dt)
-  path_cols <- grep("^path_", names(dt), value = TRUE)
+  cols <- names(dt)
+  path_cols <- grep("^path_", cols, value = TRUE)
   if (length(path_cols) > 0L) {
     dt[, (path_cols) := lapply(mget(path_cols), \(x) strsplit(x, ",", fixed = TRUE))]
   }
-  if ("observations_attributes_and_values" %in% nms) {
+  if ("observations_attributes_and_values" %in% cols) {
     observations_attributes_and_values <- NULL # nolint
     dt[,
       observations_attributes_and_values := gsub(
@@ -116,11 +121,12 @@ parse_bdf_data <- function(dt) {
 }
 
 parse_bdf_dataset <- function(dt) {
-  paths_cols <- grep("^paths_", names(dt), value = TRUE)
+  cols <- names(dt)
+  paths_cols <- grep("^paths_", cols, value = TRUE)
   if (length(paths_cols) > 0L) {
     dt[, (paths_cols) := lapply(mget(paths_cols), \(x) strsplit(x, ",", fixed = TRUE))]
   }
-  codelist_cols <- grep("_codelists$", names(dt), value = TRUE)
+  codelist_cols <- grep("_codelists$", cols, value = TRUE)
   if (length(codelist_cols) > 0L) {
     dt[,
       (codelist_cols) := lapply(mget(codelist_cols), function(x) {

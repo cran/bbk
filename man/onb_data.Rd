@@ -46,12 +46,16 @@ A \code{\link[data.table:data.table]{data.table::data.table()}} with the request
 Retrieve time series data from the OeNB Web Service.
 }
 \examples{
+\dontshow{if (curl::has_internet()) withAutoprint(\{ # examplesIf}
 \donttest{
 onb_data(hier_id = 11, key = "VDBFKBSC217000")
+
 # Loans to euro area residents, since 2000:
 onb_data(hier_id = 11, key = "VDBFKBSC217000", start_period = "2000-01-01")
+
 # Austrian imports and exports of goods from/to Germany, 2002–2012, annual frequency:
 onb_data(hier_id = 901, key = "VDBQZA1000", start_period = 2002, end_period = 2012, freq = "A")
+
 # Number of Austrian banks' subsidiaries abroad an in the EU, from 2005, semiannual:
 onb_data(
   hier_id = 321,
@@ -60,6 +64,7 @@ onb_data(
   freq = "H"
 )
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other data: 
@@ -69,6 +74,7 @@ Other data:
 \code{\link{bdf_codelist}()},
 \code{\link{bdf_data}()},
 \code{\link{bdf_dataset}()},
+\code{\link{boc_data}()},
 \code{\link{boe_data}()},
 \code{\link{ecb_data}()},
 \code{\link{snb_data}()}

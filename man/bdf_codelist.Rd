@@ -10,7 +10,7 @@
 bdf_codelist(...)
 }
 \arguments{
-\item{...}{(any)\cr
+\item{...}{(\code{any})\cr
 Extra arguments appended to the API request.
 Combined with the default arguments with \code{\link[=modifyList]{modifyList()}}.}
 }
@@ -23,6 +23,7 @@ Fetch Banque de France (BdF) codelists
 \examples{
 \dontrun{
 bdf_codelist()
+
 # filter for a specific codelist
 bdf_codelist(where = "codelist_id = 'CL_FREQ'")
 }
@@ -34,6 +35,7 @@ Other data:
 \code{\link{bde_data}()},
 \code{\link{bdf_data}()},
 \code{\link{bdf_dataset}()},
+\code{\link{boc_data}()},
 \code{\link{boe_data}()},
 \code{\link{ecb_data}()},
 \code{\link{onb_data}()},

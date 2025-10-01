@@ -33,20 +33,27 @@
 #' @examplesIf curl::has_internet()
 #' \donttest{
 #' # fetch all data for a given flow and key
-#' bbk_data("BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A")
+#' data <- bbk_data("BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A")
+#' head(data)
+#'
 #' # fetch data for multiple keys
-#' bbk_data("BBEX3", c("M.ISK.EUR", "USD.CA.AC.A01"))
+#' data <- bbk_data("BBEX3", c("M.ISK.EUR", "USD.CA.AC.A01"))
+#' head(data)
+#'
 #' # specified period (start date-end date) for daily data
-#' bbk_data(
+#' data <- bbk_data(
 #'   "BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A",
 #'   start_period = "2020-01-01",
 #'   end_period = "2020-08-01"
 #' )
+#' head(data)
+#'
 #' # or only specify the start date
-#' bbk_data(
+#' data <- bbk_data(
 #'   "BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A",
 #'   start_period = "2024-04-01"
 #' )
+#' head(data)
 #' }
 bbk_data <- function(
   flow,
@@ -146,17 +153,17 @@ bbk_metadata <- function(type, id = NULL, lang = "en") {
 }
 
 parse_bbk_series <- function(body, key) {
-  tmp <- tempfile()
-  dir.create(tmp)
-  on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
-  tf <- file.path(tmp, "tempfile.zip")
+  td <- tempfile()
+  dir.create(td)
+  on.exit(unlink(td, recursive = TRUE), add = TRUE)
+  tf <- file.path(td, "tempfile.zip")
   writeBin(body, tf)
-  utils::unzip(tf, exdir = tmp)
+  utils::unzip(tf, exdir = td)
 
-  files <- list.files(tmp, full.names = TRUE)
+  files <- list.files(td, full.names = TRUE)
   path <- grep("\\.csv$", files, value = TRUE)[[1L]]
 
-  dt <- fread(file = path, header = FALSE, skip = 11L)[, 1:2]
+  dt <- fread(file = path, header = FALSE, skip = 10L, select = 1:2)
   setnames(dt, c("date", "value"))
   value <- NULL
   dt[value == ".", value := NA_character_]
@@ -184,19 +191,18 @@ parse_bbk_series <- function(body, key) {
     P1Y = "annual",
     P1D = "daily"
   )
-  dt[, date := parse_date(date, freq)]
-  dt <- cbind(
-    dt,
-    key,
-    title,
-    freq,
-    category,
-    unit,
-    unit_mult,
-    last_update,
-    comment,
+  dt[, let(
+    date = parse_date(date, freq),
+    key = key,
+    title = title,
+    freq = freq,
+    category = category,
+    unit = unit,
+    unit_mult = unit_mult,
+    last_update = last_update,
+    comment = comment,
     source = src
-  )
+  )]
   setcolorder(dt, the$col_order, skip_absent = TRUE)
   dt[]
 }

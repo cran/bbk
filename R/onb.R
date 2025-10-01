@@ -20,13 +20,16 @@
 #' @source <https://www.oenb.at/en/Statistics/User-Defined-Tables/webservice.html>
 #' @family data
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' onb_data(hier_id = 11, key = "VDBFKBSC217000")
+#'
 #' # Loans to euro area residents, since 2000:
 #' onb_data(hier_id = 11, key = "VDBFKBSC217000", start_period = "2000-01-01")
+#'
 #' # Austrian imports and exports of goods from/to Germany, 2002–2012, annual frequency:
 #' onb_data(hier_id = 901, key = "VDBQZA1000", start_period = 2002, end_period = 2012, freq = "A")
+#'
 #' # Number of Austrian banks' subsidiaries abroad an in the EU, from 2005, semiannual:
 #' onb_data(
 #'   hier_id = 321,
@@ -89,7 +92,7 @@ parse_onb_data <- function(xml) {
 #' @inherit onb_data return
 #' @family metadata
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' onb_metadata(hier_id = 11, key = "VDBFKBSC217000")
 #' }
@@ -118,7 +121,7 @@ parse_onb_metadata <- function(xml) {
 #' @inherit onb_data return
 #' @family metadata
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' onb_frequency(hier_id = 74, key = "VDBOSBHAGBSTIN")
 #' onb_frequency(hier_id = 11, key = "VDBFKBSC217000")
@@ -153,7 +156,7 @@ parse_onb_frequency <- function(xml) {
 #' @inherit onb_data return
 #' @family metadata
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' onb_toc()
 #' }
@@ -169,7 +172,7 @@ onb_toc <- function(lang = "en") {
 #' @inherit onb_data return
 #' @family metadata
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' onb_hierarchy(hier_id = 11)
 #' }
@@ -185,7 +188,7 @@ onb_hierarchy <- function(hier_id, lang = "en") {
 #' @inherit onb_data return
 #' @family metadata
 #' @export
-#' @examples
+#' @examplesIf curl::has_internet()
 #' \donttest{
 #' onb_dimension(hier_id = 11, key = "VDBFKBSC217000")
 #' }
@@ -205,8 +208,9 @@ parse_onb_toc <- function(xml) {
     lapply(\(x) setDT(as.list(x))) |>
     rbindlist()
   desc <- xml2::xml_find_all(elem, "text") |> xml2::xml_text()
-  description <- NULL
-  dt[, description := desc][]
+  id <- parent <- NULL
+  dt[, let(id = as.integer(id), parent = as.integer(parent), description = desc)]
+  dt[]
 }
 
 parse_onb_hierarchy <- function(xml) {

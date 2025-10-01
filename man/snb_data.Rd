@@ -29,9 +29,10 @@ A \code{\link[data.table:data.table]{data.table::data.table()}} with the request
 Retrieve time series data from the SNB data portal.
 }
 \examples{
-\dontshow{if (curl::has_internet()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (curl::has_internet()) withAutoprint(\{ # examplesIf}
 \donttest{
 snb_data("rendopar")
+
 # or filter for date range
 snb_data("rendopar", "2020-01-01", "2020-12-31")
 }
@@ -45,6 +46,7 @@ Other data:
 \code{\link{bdf_codelist}()},
 \code{\link{bdf_data}()},
 \code{\link{bdf_dataset}()},
+\code{\link{boc_data}()},
 \code{\link{boe_data}()},
 \code{\link{ecb_data}()},
 \code{\link{onb_data}()}

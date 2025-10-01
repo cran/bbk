@@ -1,3 +1,9 @@
+# bbk 0.8.0
+
+* Add missing data in `bbk_series()`.
+* Support for exchange rates from the Bank of Canada (BoC).
+* Support for Bank of Canada (BoC) data.
+
 # bbk 0.7.0
 
 * Switch to checkmate for input validation.
