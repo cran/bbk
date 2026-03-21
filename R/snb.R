@@ -32,23 +32,21 @@ snb_data <- function(key, start_date = NULL, end_date = NULL, lang = "en") {
 }
 
 parse_snb_data <- function(json) {
-  dt <- json$timeseries |>
-    lapply(function(x) {
-      meta <- as.data.table(x$metadata)
-      header <- x$header
-      cols <- vapply(header, \(x) x$dim, character(1L))
-      cols <- gsub("[[:space:][:punct:]]", "_", tolower(cols))
-      item <- setNames(lapply(header, \(x) x$dimItem), cols)
-      ref <- setDT(item)
-      vals <- x$values
-      vals <- data.table(
-        date = vapply(vals, \(x) x$date, character(1L)),
-        value = vapply(vals, \(x) x$value, numeric(1L))
-      )
-      vals[, names(meta) := meta]
-      vals[, names(ref) := ref]
-    }) |>
-    rbindlist()
+  dt <- rbindlist(map(json$timeseries, function(x) {
+    meta <- as.data.table(x$metadata)
+    header <- x$header
+    cols <- map_chr(header, "dim")
+    cols <- gsub("[[:space:][:punct:]]", "_", tolower(cols))
+    item <- setNames(map(header, "dimItem"), cols)
+    ref <- setDT(item)
+    vals <- x$values
+    vals <- data.table(
+      date = map_chr(vals, "date"),
+      value = map_dbl(vals, "value")
+    )
+    vals[, names(meta) := meta]
+    vals[, names(ref) := ref]
+  }))
 
   dt[!nzchar(scale), scale := NA_character_]
   setnames(dt, "frequency", "duration")
@@ -62,17 +60,56 @@ parse_snb_data <- function(json) {
     P1D = "daily"
   )
   dt[, let(date = parse_date(date, freq), freq = freq)]
-  setcolorder(dt, the$col_order, skip_absent = TRUE)
+  setcolorder(dt, col_order, skip_absent = TRUE)
   dt[]
 }
 
-snb <- function(id, ..., lang = "en") {
-  url <- sprintf("https://data.snb.ch/api/cube/%s/data/json", id)
+#' Fetch Swiss National Bank (SNB) dimensions
+#'
+#' Retrieve the dimension structure for a given cube from the SNB data portal.
+#'
+#' @inheritParams snb_data
+#' @returns A [data.table::data.table()] with the dimension structure.
+#' @export
+#' @source <https://data.snb.ch/en>
+#' @family metadata
+#' @examplesIf curl::has_internet()
+#' \donttest{
+#' snb_dimension("rendopar")
+#' }
+snb_dimension <- function(key, lang = "en") {
+  assert_string(key, min.chars = 1L)
+  assert_choice(lang, c("en", "de"))
+
+  json <- snb(key, resource = "dimensions", lang = lang)
+  parse_snb_dimension(json)
+}
+
+parse_snb_dimension <- function(json) {
+  rbindlist(map(json$dimensions, function(x) {
+    items <- x$dimensionItems
+    has_children <- map_lgl(items, \(item) !is.null(item$dimensionItems))
+    if (any(has_children)) {
+      items <- unlist(map(items, "dimensionItems"), recursive = FALSE)
+    }
+    data.table(
+      dim_id = x$id,
+      dim_name = x$name,
+      item_id = map_chr(items, "id"),
+      item_name = map_chr(items, "name")
+    )
+  }))
+}
+
+snb <- function(id, ..., resource = "data/json", lang = "en") {
+  url <- sprintf("https://data.snb.ch/api/cube/%s/%s", id, resource)
   request(url) |>
-    req_user_agent("bbk (https://m-muecke.github.io/bbk)") |>
+    req_user_agent(bbk_user_agent()) |>
     req_url_path_append(lang) |>
     req_url_query(...) |>
     req_error(body = snb_error_body) |>
+    req_bbk_retry() |>
+    req_bbk_cache() |>
     req_perform() |>
     resp_body_json(check_type = FALSE)
 }

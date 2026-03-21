@@ -1,3 +1,23 @@
+# bbk 0.9.0
+
+* Add optional caching of API responses via `options(bbk.cache = TRUE)`. Cached
+  responses are stored for 1 day by default and can be customized with
+  `options(bbk.cache_max_age = seconds)`. Use `bbk_cache_dir()` to find the cache
+  location and `bbk_cache_clear()` to clear it.
+* Support for Bank for International Settlements (BIS) data.
+* Support for Norges Bank (NoB) data.
+* `boc_data()` now returns a `value` column instead of `rate` for consistency with other data functions.
+* `bde_latest()` returns the most recently published value for one or more BdE series.
+* `bbk_dimension()` returns the dimension structure for a given Bundesbank dataflow.
+* `bis_dimension()` returns the dimension structure for a given BIS dataflow.
+* `ecb_data()` gains an `updated_after` parameter to retrieve only observations updated after a given timestamp.
+* `ecb_dimension()` returns the dimension structure for a given ECB dataflow.
+* `nob_dimension()` returns the dimension structure for a given Norges Bank dataflow.
+* `snb_dimension()` returns the dimension structure for a given SNB cube.
+* `srb_calendar()` returns Swedish banking calendar day information.
+* `srb_cross_rates()` computes cross exchange rates between two Riksbank currency series.
+* Support for Sveriges Riksbank (SRb) data.
+
 # bbk 0.8.0
 
 * Add missing data in `bbk_series()`.

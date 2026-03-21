@@ -30,7 +30,7 @@
 #' # Austrian imports and exports of goods from/to Germany, 2002–2012, annual frequency:
 #' onb_data(hier_id = 901, key = "VDBQZA1000", start_period = 2002, end_period = 2012, freq = "A")
 #'
-#' # Number of Austrian banks' subsidiaries abroad an in the EU, from 2005, semiannual:
+#' # Number of Austrian banks' subsidiaries abroad and in the EU, from 2005, semiannual:
 #' onb_data(
 #'   hier_id = 321,
 #'   key = c("VDBKISDANZTAU", "VDBKISDANZTEU"),
@@ -70,7 +70,7 @@ onb_data <- function(
 parse_onb_data <- function(xml) {
   dt <- xml |>
     xml2::xml_find_all(".//dataSet") |>
-    lapply(function(x) {
+    map(function(x) {
       obs <- xml2::xml_find_all(x, ".//obs")
       dt <- data.table(
         date = xml2::xml_attr(obs, "periode"),
@@ -82,8 +82,8 @@ parse_onb_data <- function(xml) {
     rbindlist() |>
     setnames(convert_camel_case) |>
     setnames(c("pos", "pos_title"), c("key", "title")) |>
-    setcolorder(the$col_order, skip_absent = TRUE)
-  dt
+    setcolorder(col_order, skip_absent = TRUE)
+  dt[]
 }
 
 #' Fetch Österreichische Nationalbank (OeNB) metadata
@@ -126,7 +126,7 @@ parse_onb_metadata <- function(xml) {
 #' onb_frequency(hier_id = 74, key = "VDBOSBHAGBSTIN")
 #' onb_frequency(hier_id = 11, key = "VDBFKBSC217000")
 #' }
-onb_frequency <- function(hier_id, key, lang = "en", ...) {
+onb_frequency <- function(hier_id, key, ..., lang = "en") {
   hier_id <- assert_count(hier_id, positive = TRUE, coerce = TRUE)
   assert_string(key, min.chars = 1L, null.ok = TRUE)
   assert_string(lang, n.chars = 2L)
@@ -138,7 +138,7 @@ onb_frequency <- function(hier_id, key, lang = "en", ...) {
 parse_onb_frequency <- function(xml) {
   dt <- xml |>
     xml2::xml_find_all(".//dataSet") |>
-    lapply(function(x) {
+    map(function(x) {
       freq <- x |> xml2::xml_find_all(".//periods") |> xml2::xml_attr("frequency")
       avail <- x |> xml2::xml_find_all(".//periods/available") |> xml2::xml_text()
       dt <- data.table(freq = freq, available = avail)
@@ -205,9 +205,9 @@ parse_onb_toc <- function(xml) {
   elem <- xml2::xml_find_all(xml, ".//content/element")
   dt <- elem |>
     xml2::xml_attrs() |>
-    lapply(\(x) setDT(as.list(x))) |>
+    map(\(x) setDT(as.list(x))) |>
     rbindlist()
-  desc <- xml2::xml_find_all(elem, "text") |> xml2::xml_text()
+  desc <- xml2::xml_text(xml2::xml_find_all(elem, "text"))
   id <- parent <- NULL
   dt[, let(id = as.integer(id), parent = as.integer(parent), description = desc)]
   dt[]
@@ -216,7 +216,7 @@ parse_onb_toc <- function(xml) {
 parse_onb_hierarchy <- function(xml) {
   xml |>
     xml2::xml_find_all(".//group") |>
-    lapply(function(grp) {
+    map(function(grp) {
       pos <- xml2::xml_find_all(grp, ".//position")
       data.table(
         group = xml2::xml_attr(grp, "name"),
@@ -231,7 +231,7 @@ parse_onb_dimension <- function(xml) {
   dt <- xml |>
     xml2::xml_find_all(".//data_content/structure/dimension") |>
     xml2::xml_attrs() |>
-    lapply(\(x) setDT(as.list(x))) |>
+    map(\(x) setDT(as.list(x))) |>
     rbindlist()
   nr <- NULL
   dt[, nr := as.integer(nr)][]
@@ -239,7 +239,7 @@ parse_onb_dimension <- function(xml) {
 
 onb <- function(resource, ...) {
   request("https://www.oenb.at/isadataservice") |>
-    req_user_agent("bbk (https://m-muecke.github.io/bbk)") |>
+    req_user_agent(bbk_user_agent()) |>
     req_url_path_append(resource) |>
     req_url_query(..., .multi = "explode") |>
     req_error(
@@ -250,13 +250,18 @@ onb <- function(resource, ...) {
         x <- resp |> resp_body_xml() |> xml2::xml_find_first("errors")
         !is.na(x)
       },
-      body = function(resp) {
-        content_type <- resp_content_type(resp)
-        if (identical(content_type, "application/xml")) {
-          resp |> resp_body_xml() |> xml2::xml_text()
-        }
-      }
+      body = onb_error_body
     ) |>
+    req_bbk_retry() |>
+    req_bbk_cache() |>
     req_perform() |>
     resp_body_xml()
+}
+
+
+onb_error_body <- function(resp) {
+  content_type <- resp_content_type(resp)
+  if (identical(content_type, "application/xml")) {
+    xml2::xml_text(resp_body_xml(resp))
+  }
 }

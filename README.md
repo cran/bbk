@@ -5,8 +5,6 @@
 
 <!-- badges: start -->
 
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/m-muecke/bbk/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/m-muecke/bbk/actions/workflows/R-CMD-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/bbk)](https://CRAN.R-project.org/package=bbk)
@@ -18,6 +16,8 @@ bbk is minimal R client for the following APIs:
 
 - [Banco de España
   (BdE)](https://www.bde.es/webbe/en/estadisticas/recursos/api-estadisticas-bde.html)
+- [Bank for International Settlements
+  (BIS)](https://stats.bis.org/api-doc/v1/)
 - [Bank of Canada
   (BoC)](https://www.bankofcanada.ca/valet-api-how-to/#about)
 - [Bank of England
@@ -28,6 +28,9 @@ bbk is minimal R client for the following APIs:
   (BBk)](https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service)
 - [European Central Bank
   (ECB)](https://data.ecb.europa.eu/help/api/overview)
+- [Norges Bank
+  (NoB)](https://www.norges-bank.no/en/topics/Statistics/open-data/)
+- [Sveriges Riksbank (SRb)](https://developer.api.riksbank.se/)
 - [Swiss National Bank (SNB)](https://data.snb.ch/en)
 - [Österreichische Nationalbank
   (OeNB)](https://www.oenb.at/en/Statistics/User-Defined-Tables/webservice.html)
@@ -55,8 +58,9 @@ pak::pak("m-muecke/bbk")
 ## Usage
 
 bbk functions are prefixed according to the central bank they access
-(`bbk_`, `ecb_`, `snb_`, `boe_`, `bde_`, `bdf_`, `onb_`, `boc_`) and
-follow the naming conventions of their respective APIs.
+(`bbk_`, `ecb_`, `snb_`, `bis_`, `boe_`, `bde_`, `bdf_`, `onb_`, `boc_`,
+`nob_`, `srb_`) and follow the naming conventions of their respective
+APIs.
 
 The typical workflow involves:
 
@@ -75,10 +79,16 @@ yield_curve <- bbk_data(
 )
 ```
 
-<img src="man/figures/README-plotting-1.png" width="100%" />
+<img src="man/figures/README-plotting-1.png" alt="" width="100%" />
 
 ## Related work
 
+- [BIS](https://github.com/stefanangrick/BIS): R package for downloading
+  data from the Bank for International Settlements (BIS).
+- [BISdata](https://github.com/enricoschumann/BISdata): R package for
+  downloading data from the Bank for International Settlements (BIS).
+- [boe](https://github.com/charlescoverdale/boe): R package for
+  downloading data from the Bank of England (BoE).
 - [SNBdata](https://github.com/enricoschumann/SNBdata): R package for
   downloading data from the Swiss National Bank (SNB).
 - [bundesbank](https://github.com/enricoschumann/bundesbank): R scripts
@@ -93,6 +103,8 @@ yield_curve <- bbk_data(
   reading SDMX data and metadata.
 - [rsdmx](https://github.com/eblondel/rsdmx): R package for reading SDMX
   data and metadata.
+- [rwebstat](https://github.com/cran/rwebstat): R package for accessing
+  the Banque de France’s Webstat API.
 - [tidyBdE](https://github.com/rOpenSpain/tidyBdE): R package for
   accessing the Banco de España’s API.
 - [valet](https://github.com/runkelcorey/valet): R client to the Bank of

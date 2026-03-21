@@ -101,12 +101,15 @@ boc_fx_rates <- function(start_date = NULL, end_date = NULL, limit = NULL, skip 
 
   url <- "https://bcd-api-dca-ipa.cbsa-asfc.cloud-nuage.canada.ca/exchange-rate-lambda/exchange-rates" # nolint
   json <- request(url) |>
+    req_user_agent(bbk_user_agent()) |>
     req_url_query(startDate = start_date, endDate = end_date, limit = limit, skip = skip) |>
+    req_bbk_retry() |>
+    req_bbk_cache() |>
     req_perform() |>
     resp_body_json()
 
   dt <- json$ForeignExchangeRates |>
-    lapply(as.data.table) |>
+    map(as.data.table) |>
     rbindlist() |>
     setnames(convert_camel_case)
 

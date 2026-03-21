@@ -4,7 +4,7 @@
 \alias{onb_frequency}
 \title{Fetch Österreichische Nationalbank (OeNB) data frequency}
 \usage{
-onb_frequency(hier_id, key, lang = "en", ...)
+onb_frequency(hier_id, key, ..., lang = "en")
 }
 \arguments{
 \item{hier_id}{(\code{integer(1)})\cr
@@ -13,11 +13,11 @@ Hierarchy id to query.}
 \item{key}{(\code{character()})\cr
 The series keys to query.}
 
-\item{lang}{(\code{character(1)})\cr
-Language to query. Default \code{"en"}.}
-
 \item{...}{(\code{any})\cr
 Additional parameters to pass to the API.}
+
+\item{lang}{(\code{character(1)})\cr
+Language to query. Default \code{"en"}.}
 }
 \value{
 A \code{\link[data.table:data.table]{data.table::data.table()}} with the requested data.
@@ -35,11 +35,20 @@ onb_frequency(hier_id = 11, key = "VDBFKBSC217000")
 }
 \seealso{
 Other metadata: 
+\code{\link{bbk_dimension}()},
 \code{\link{bbk_metadata}()},
+\code{\link{bis_dimension}()},
+\code{\link{bis_metadata}()},
+\code{\link{ecb_dimension}()},
 \code{\link{ecb_metadata}()},
+\code{\link{nob_dimension}()},
+\code{\link{nob_metadata}()},
 \code{\link{onb_dimension}()},
 \code{\link{onb_hierarchy}()},
 \code{\link{onb_metadata}()},
-\code{\link{onb_toc}()}
+\code{\link{onb_toc}()},
+\code{\link{snb_dimension}()},
+\code{\link{srb_calendar}()},
+\code{\link{srb_series}()}
 }
 \concept{metadata}

@@ -12,6 +12,7 @@ bdf_data(
   key = NULL,
   start_date = NULL,
   end_date = NULL,
+  lang = "en",
   api_key = bdf_key()
 )
 }
@@ -28,6 +29,9 @@ Start date of the data. Default \code{NULL}.}
 
 \item{end_date}{(\code{NULL} | \code{character(1)} | \code{Date(1)})\cr
 End date of the data. Default \code{NULL}.}
+
+\item{lang}{(\code{character(1)})\cr
+Language to query. Default \code{"en"}.}
 
 \item{api_key}{(\code{character(1)})\cr
 API key to use for the request. Defaults to the value returned by \code{bdf_key()}, which reads from
@@ -58,12 +62,17 @@ Other data:
 \code{\link{bbk_data}()},
 \code{\link{bbk_series}()},
 \code{\link{bde_data}()},
+\code{\link{bde_latest}()},
 \code{\link{bdf_codelist}()},
 \code{\link{bdf_dataset}()},
+\code{\link{bis_data}()},
 \code{\link{boc_data}()},
 \code{\link{boe_data}()},
 \code{\link{ecb_data}()},
+\code{\link{nob_data}()},
 \code{\link{onb_data}()},
-\code{\link{snb_data}()}
+\code{\link{snb_data}()},
+\code{\link{srb_cross_rates}()},
+\code{\link{srb_data}()}
 }
 \concept{data}

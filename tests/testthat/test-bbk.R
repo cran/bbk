@@ -82,6 +82,13 @@ test_that("bbk_series input validation works", {
   expect_error(bbk_series(c("BBEX3.M.DKK.EUR.BB.AC.A01", "BBEX3.M.DKK.EUR.BB.AC.A02")))
 })
 
+test_that("bbk_dimension input validation works", {
+  expect_error(bbk_dimension(1L))
+  expect_error(bbk_dimension(TRUE))
+  expect_error(bbk_dimension(NULL))
+  expect_error(bbk_dimension(c("a", "b")))
+})
+
 test_that("metadata input validation works", {
   # type should be one of datastructure, dataflow, codelist, concept
   expect_error(bbk_metadata(1L))
@@ -92,7 +99,7 @@ test_that("metadata input validation works", {
   expect_error(bbk_metadata("datastructure", id = 1L))
   expect_error(bbk_metadata("datastructure", id = TRUE))
   expect_error(bbk_metadata("datastructure", id = c("a", "b")))
-  # lang shoula be en or de
+  # lang should be en or de
   expect_error(bbk_metadata(lang = "abc"))
   expect_error(bbk_metadata(lang = 1L))
   expect_error(bbk_metadata(lang = NA))
@@ -104,9 +111,9 @@ test_that("bbk_series does frequency conversion", {
   skip_on_ci()
 
   x <- bbk_series("BBEX3.M.DKK.EUR.BB.AC.A01")
-  expect_true(all(x$freq == "monthly"))
+  expect_all_equal(x$freq, "monthly")
   x <- bbk_series("BBAF3.Q.F41.S121.DE.S1.W0.LE.N._X.B")
-  expect_true(all(x$freq == "quarterly"))
+  expect_all_equal(x$freq, "quarterly")
   x <- bbk_series("BBBK11.D.TTA000")
-  expect_true(all(x$freq == "daily"))
+  expect_all_equal(x$freq, "daily")
 })

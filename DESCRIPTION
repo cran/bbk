@@ -1,6 +1,6 @@
 Package: bbk
 Title: Client for Central Bank APIs
-Version: 0.8.0
+Version: 0.9.0
 Authors@R: 
     person("Maximilian", "Mücke", , "muecke.maximilian@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-9432-9795"))
@@ -14,8 +14,14 @@ Description: A client for retrieving data and metadata from major central
     (<https://www.bankofengland.co.uk/boeapps/database>), the 'Banco de
     España API'
     (<https://www.bde.es/webbe/en/estadisticas/recursos/api-estadisticas-bde.html>),
+    the 'Bank for International Settlements SDMX Web Service'
+    (<https://stats.bis.org/api-doc/v1/>),
     the 'Banque de France Web Service'
     (<https://webstat.banque-france.fr/en/pages/guide-migration-api/>),
+    the 'Norges Bank SDMX Web Service'
+    (<https://www.norges-bank.no/en/topics/Statistics/open-data/>),
+    the 'Oesterreichische Nationalbank Web Service'
+    (<https://www.oenb.at/en/Statistics/User-Defined-Tables/webservice.html>),
     and 'Bank of Canada Valet API'
     (<https://www.bankofcanada.ca/valet/docs>).
 License: MIT + file LICENSE
@@ -24,14 +30,14 @@ BugReports: https://github.com/m-muecke/bbk/issues
 Depends: R (>= 4.1.0)
 Imports: checkmate, curl, data.table (>= 1.17.0), httr2 (>= 1.0.0),
         jsonlite, stats, utils, xml2
-Suggests: ggplot2, scales, testthat (>= 3.0.0)
+Suggests: ggplot2, scales, testthat (>= 3.3.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.3.3
 NeedsCompilation: yes
-Packaged: 2025-10-01 16:23:21 UTC; mmuecke
+Packaged: 2026-03-21 11:43:46 UTC; mmuecke
 Author: Maximilian Mücke [aut, cre] (ORCID:
     <https://orcid.org/0009-0000-9432-9795>)
 Maintainer: Maximilian Mücke <muecke.maximilian@gmail.com>
 Repository: CRAN
-Date/Publication: 2025-10-01 16:40:08 UTC
+Date/Publication: 2026-03-21 12:10:02 UTC

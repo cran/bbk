@@ -2,9 +2,11 @@
 #' @import checkmate
 #' @import data.table
 #' @importFrom httr2 req_body_json
+#' @importFrom httr2 req_cache
 #' @importFrom httr2 req_error
 #' @importFrom httr2 req_headers
 #' @importFrom httr2 req_perform
+#' @importFrom httr2 req_retry
 #' @importFrom httr2 req_url_path_append
 #' @importFrom httr2 req_url_query
 #' @importFrom httr2 req_user_agent
@@ -19,5 +21,8 @@
 #' @importFrom stats na.omit setNames
 "_PACKAGE"
 
-the <- new.env(parent = emptyenv())
-the$col_order <- c("date", "key", "value", "freq", "title", "description")
+col_order <- c("date", "key", "value", "freq", "title", "description")
+
+bbk_user_agent <- function() {
+  sprintf("bbk/%s", utils::packageVersion("bbk"))
+}

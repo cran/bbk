@@ -4,7 +4,7 @@
 #'
 #' @param flow (`character(1)`)\cr
 #'   Flow to query.
-#' @param key (`character()`)\cr
+#' @param key (`NULL` | `character()`)\cr
 #'   The series keys to query.
 #' @param start_period (`NULL` | `character(1)` | `integer(1)`)\cr
 #'   Start date of the data. Supported formats:
@@ -26,6 +26,9 @@
 #' @param last_n (`NULL` | `numeric(1)`)\cr
 #'   Number of observations to retrieve from the end of the series. If `NULL`, no restriction is
 #'   applied. Default `NULL`.
+#' @param updated_after (`NULL` | `character(1)`)\cr
+#'   ISO 8601 timestamp to retrieve only observations updated after the given time
+#'   (e.g., `"2024-06-01T00:00:00"`). If `NULL`, no restriction is applied. Default `NULL`.
 #' @returns A [data.table::data.table()] with the requested data.
 #' @source <https://data.ecb.europa.eu/help/api/data>
 #' @family data
@@ -44,7 +47,8 @@ ecb_data <- function(
   start_period = NULL,
   end_period = NULL,
   first_n = NULL,
-  last_n = NULL
+  last_n = NULL,
+  updated_after = NULL
 ) {
   assert_string(flow, min.chars = 1L)
   assert_character(key, min.chars = 1L, null.ok = TRUE)
@@ -52,15 +56,16 @@ ecb_data <- function(
   assert_period(end_period)
   first_n <- assert_count(first_n, null.ok = TRUE, positive = TRUE, coerce = TRUE)
   last_n <- assert_count(last_n, null.ok = TRUE, positive = TRUE, coerce = TRUE)
+  assert_string(updated_after, null.ok = TRUE)
 
-  key <- if (!is.null(key)) paste(key, collapse = "+") else "all"
-  resource <- paste("data", flow, key, sep = "/")
+  resource <- sdmx_data_resource(flow, key, default_key = "all")
   xml <- ecb(
     resource = resource,
     startPeriod = start_period,
     endPeriod = end_period,
     firstNObservations = first_n,
-    lastNObservations = last_n
+    lastNObservations = last_n,
+    updatedAfter = updated_after
   )
   parse_ecb_data(xml)
 }
@@ -103,6 +108,30 @@ ecb_metadata <- function(type, agency = NULL, id = NULL) {
   do.call(fetch_ecb_metadata, c(args, list(agency, id)))
 }
 
+#' Fetch European Central Bank (ECB) dimensions
+#'
+#' Retrieve the dimension structure for a given dataflow from the ECB SDMX Web Service.
+#'
+#' @param id (`character(1)`)\cr
+#'   The id of the data structure definition to query (e.g., `"ECB_EXR1"`).
+#' @returns A [data.table::data.table()] with columns:
+#'   \item{id}{The dimension id (e.g., `"FREQ"`, `"CURRENCY"`)}
+#'   \item{position}{The position of the dimension in the series key}
+#'   \item{codelist}{The id of the associated codelist (e.g., `"CL_FREQ"`)}
+#' @source <https://data.ecb.europa.eu/help/api/metadata>
+#' @family metadata
+#' @export
+#' @examplesIf curl::has_internet()
+#' \donttest{
+#' ecb_dimension("ECB_EXR1")
+#' }
+ecb_dimension <- function(id) {
+  assert_string(id, min.chars = 1L)
+  resource <- paste("datastructure", "ECB", toupper(id), sep = "/")
+  xml <- ecb(resource)
+  sdmx_dimension(xml)
+}
+
 fetch_ecb_metadata <- function(resource, xpath, agency = NULL, id = NULL) {
   assert_string(agency, min.chars = 1L, null.ok = TRUE)
   assert_string(id, min.chars = 1L, null.ok = TRUE)
@@ -117,7 +146,7 @@ fetch_ecb_metadata <- function(resource, xpath, agency = NULL, id = NULL) {
 
 parse_ecb_data <- function(xml) {
   series <- xml2::xml_find_all(xml, ".//generic:Series")
-  res <- lapply(series, function(x) {
+  res <- map(series, function(x) {
     series_key <- x |>
       xml2::xml_find_first(".//generic:SeriesKey") |>
       xml2::xml_children()
@@ -143,16 +172,7 @@ parse_ecb_data <- function(xml) {
 
     data <- c(series_key, attrs)
     data$key <- paste(series_key, collapse = ".")
-
-    data$freq <- switch(
-      data$freq,
-      A = "annual",
-      S = "semi-annual",
-      Q = "quarterly",
-      M = "monthly",
-      W = "weekly",
-      D = "daily"
-    )
+    data$freq <- sdmx_freq(data$freq)
 
     entries <- xml2::xml_find_all(x, ".//generic:Obs[generic:ObsValue]")
     data$date <- x |>
@@ -167,19 +187,22 @@ parse_ecb_data <- function(xml) {
 
     as.data.table(data)
   })
-  res <- res |> rbindlist(fill = TRUE) |> setcolorder(the$col_order, skip_absent = TRUE)
-  res
+  res <- res |>
+    rbindlist(fill = TRUE) |>
+    setcolorder(col_order, skip_absent = TRUE)
+  res[]
 }
 
-parse_ecb_metadata <- function(x, lang = "en") {
-  rbindlist(lapply(x, function(node) {
-    agency <- xml2::xml_attr(node, "agencyID")
-    id <- xml2::xml_attr(node, "id")
-    nms <- node |>
-      xml2::xml_find_all(sprintf(".//com:Name[@xml:lang='%s']", lang)) |>
-      xml2::xml_text()
-    data.table(agency = agency, id = id, name = nms)
-  }))
+parse_ecb_metadata <- function(entries) {
+  agency <- NULL
+  dt <- entries |>
+    map(function(node) {
+      dt <- sdmx_metadata(list(node))
+      dt[, agency := xml2::xml_attr(node, "agencyID")]
+    }) |>
+    rbindlist() |>
+    setcolorder(c("agency", "id", "name"))
+  dt[]
 }
 
 ecb_error_body <- function(resp) {
@@ -189,11 +212,5 @@ ecb_error_body <- function(resp) {
 }
 
 ecb <- function(resource, ...) {
-  request("https://data-api.ecb.europa.eu/service/") |>
-    req_user_agent("bbk (https://m-muecke.github.io/bbk)") |>
-    req_url_path_append(resource) |>
-    req_url_query(...) |>
-    req_error(body = ecb_error_body) |>
-    req_perform() |>
-    resp_body_xml()
+  sdmx_request("https://data-api.ecb.europa.eu/service/", resource, ecb_error_body, ...)
 }

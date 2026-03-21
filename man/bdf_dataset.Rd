@@ -7,12 +7,15 @@
 \url{https://webstat.banque-france.fr/en/pages/guide-migration-api/}
 }
 \usage{
-bdf_dataset(...)
+bdf_dataset(..., lang = "en")
 }
 \arguments{
 \item{...}{(\code{any})\cr
 Extra arguments appended to the API request.
 Combined with the default arguments with \code{\link[=modifyList]{modifyList()}}.}
+
+\item{lang}{(\code{character(1)})\cr
+Language to query. Default \code{"en"}.}
 }
 \value{
 A \code{\link[data.table:data.table]{data.table::data.table()}} with the requested data.
@@ -33,12 +36,17 @@ Other data:
 \code{\link{bbk_data}()},
 \code{\link{bbk_series}()},
 \code{\link{bde_data}()},
+\code{\link{bde_latest}()},
 \code{\link{bdf_codelist}()},
 \code{\link{bdf_data}()},
+\code{\link{bis_data}()},
 \code{\link{boc_data}()},
 \code{\link{boe_data}()},
 \code{\link{ecb_data}()},
+\code{\link{nob_data}()},
 \code{\link{onb_data}()},
-\code{\link{snb_data}()}
+\code{\link{snb_data}()},
+\code{\link{srb_cross_rates}()},
+\code{\link{srb_data}()}
 }
 \concept{data}

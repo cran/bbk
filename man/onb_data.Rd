@@ -56,7 +56,7 @@ onb_data(hier_id = 11, key = "VDBFKBSC217000", start_period = "2000-01-01")
 # Austrian imports and exports of goods from/to Germany, 2002–2012, annual frequency:
 onb_data(hier_id = 901, key = "VDBQZA1000", start_period = 2002, end_period = 2012, freq = "A")
 
-# Number of Austrian banks' subsidiaries abroad an in the EU, from 2005, semiannual:
+# Number of Austrian banks' subsidiaries abroad and in the EU, from 2005, semiannual:
 onb_data(
   hier_id = 321,
   key = c("VDBKISDANZTAU", "VDBKISDANZTEU"),
@@ -71,12 +71,17 @@ Other data:
 \code{\link{bbk_data}()},
 \code{\link{bbk_series}()},
 \code{\link{bde_data}()},
+\code{\link{bde_latest}()},
 \code{\link{bdf_codelist}()},
 \code{\link{bdf_data}()},
 \code{\link{bdf_dataset}()},
+\code{\link{bis_data}()},
 \code{\link{boc_data}()},
 \code{\link{boe_data}()},
 \code{\link{ecb_data}()},
-\code{\link{snb_data}()}
+\code{\link{nob_data}()},
+\code{\link{snb_data}()},
+\code{\link{srb_cross_rates}()},
+\code{\link{srb_data}()}
 }
 \concept{data}

@@ -85,7 +85,7 @@ boc_catalog <- function(type = "groups") {
   assert_choice(type, c("groups", "series"))
   json <- boc("lists", type)
   lst <- json[[type]]
-  dt <- rbindlist(lapply(lst, setDT))
+  dt <- rbindlist(map(lst, setDT))
   dt[, "name" := names(lst)]
   dt[]
 }
@@ -101,7 +101,7 @@ boc_details_group <- function(name) {
   grp <- json$groupDetails
   meta <- setDT(grp[lengths(grp) == 1L])
   setnames(meta, \(x) paste("group", x, sep = "_"))
-  series <- rbindlist(lapply(grp$groupSeries, setDT))
+  series <- rbindlist(map(grp$groupSeries, setDT))
   series[, "name" := names(grp$groupSeries)]
   setnames(series, \(x) paste("series", x, sep = "_"))
   series[, names(meta) := meta]
@@ -114,11 +114,11 @@ boc_series_obs <- function(name, start_date, end_date) {
   name <- paste(name, collapse = ",")
   json <- boc("observations", name, start_date = start_date, end_date = end_date)
 
-  meta <- rbindlist(lapply(json$seriesDetail, \(x) setDT(x[lengths(x) == 1])))
+  meta <- rbindlist(map(json$seriesDetail, \(x) setDT(x[lengths(x) == 1])))
   meta[, "name" := names(json$seriesDetail)]
 
   obs <- json$observations |>
-    lapply(function(x) {
+    map(function(x) {
       nms <- names(x)
       x |>
         unlist(recursive = FALSE, use.names = FALSE) |>
@@ -130,27 +130,27 @@ boc_series_obs <- function(name, start_date, end_date) {
     melt(
       id.vars = "date",
       variable.name = "name",
-      value.name = "rate",
+      value.name = "value",
       na.rm = TRUE,
       variable.factor = FALSE
     )
 
-  obs <- obs[meta, on = "name"]
-  rate <- NULL
-  obs[, let(date = as.Date(date), rate = as.numeric(rate))]
+  obs <- meta[obs, on = "name"]
+  value <- NULL
+  obs[, let(date = as.Date(date), value = as.numeric(value))]
   obs[]
 }
 
 boc_group_obs <- function(name = "FX_RATES_DAILY", start_date = NULL, end_date = NULL) {
   json <- boc("observations/group", name)
-  grp <- setDT(lapply(json$groupDetail, \(x) x %||% NA_character_))
+  grp <- setDT(map(json$groupDetail, \(x) x %??% NA_character_))
   setnames(grp, \(x) paste("group", x, sep = "_"))
-  meta <- rbindlist(lapply(json$seriesDetail, \(x) setDT(x[lengths(x) == 1])))
+  meta <- rbindlist(map(json$seriesDetail, \(x) setDT(x[lengths(x) == 1])))
   meta[, "name" := names(json$seriesDetail)]
   setnames(meta, \(x) paste("series", x, sep = "_"))
 
   obs <- json$observations |>
-    lapply(function(x) {
+    map(function(x) {
       nms <- names(x)
       x |>
         unlist(recursive = FALSE, use.names = FALSE) |>
@@ -162,25 +162,27 @@ boc_group_obs <- function(name = "FX_RATES_DAILY", start_date = NULL, end_date =
     melt(
       id.vars = "date",
       variable.name = "name",
-      value.name = "rate",
+      value.name = "value",
       na.rm = TRUE,
       variable.factor = FALSE
     )
-  rate <- NULL
-  obs[, let(date = as.Date(date), rate = as.numeric(rate))]
+  value <- NULL
+  obs[, let(date = as.Date(date), value = as.numeric(value))]
   setnames(obs, "name", "series_name")
 
-  obs <- obs[meta, on = "series_name"]
+  obs <- meta[obs, on = "series_name"]
   obs[, names(grp) := grp]
   obs[]
 }
 
 boc <- function(resource, name, ...) {
   request("https://www.bankofcanada.ca/valet") |>
-    req_user_agent("bbk (https://m-muecke.github.io/bbk)") |>
+    req_user_agent(bbk_user_agent()) |>
     req_url_path_append(resource, name, "json") |>
     req_url_query(...) |>
     req_error(body = boc_error_body) |>
+    req_bbk_retry() |>
+    req_bbk_cache() |>
     req_perform() |>
     resp_body_json()
 }

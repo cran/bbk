@@ -20,7 +20,7 @@ bbk_data(
 \item{flow}{(\code{character(1)})\cr
 The flow to query, 5-8 characters. See \code{\link[=bbk_metadata]{bbk_metadata()}} for available dataflows.}
 
-\item{key}{(\code{character()})\cr
+\item{key}{(\code{NULL} | \code{character()})\cr
 The series keys to query.}
 
 \item{start_period}{(\code{NULL} | \code{character(1)} | \code{integer(1)})\cr
@@ -87,13 +87,18 @@ head(data)
 Other data: 
 \code{\link{bbk_series}()},
 \code{\link{bde_data}()},
+\code{\link{bde_latest}()},
 \code{\link{bdf_codelist}()},
 \code{\link{bdf_data}()},
 \code{\link{bdf_dataset}()},
+\code{\link{bis_data}()},
 \code{\link{boc_data}()},
 \code{\link{boe_data}()},
 \code{\link{ecb_data}()},
+\code{\link{nob_data}()},
 \code{\link{onb_data}()},
-\code{\link{snb_data}()}
+\code{\link{snb_data}()},
+\code{\link{srb_cross_rates}()},
+\code{\link{srb_data}()}
 }
 \concept{data}

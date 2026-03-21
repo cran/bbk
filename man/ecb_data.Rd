@@ -13,14 +13,15 @@ ecb_data(
   start_period = NULL,
   end_period = NULL,
   first_n = NULL,
-  last_n = NULL
+  last_n = NULL,
+  updated_after = NULL
 )
 }
 \arguments{
 \item{flow}{(\code{character(1)})\cr
 Flow to query.}
 
-\item{key}{(\code{character()})\cr
+\item{key}{(\code{NULL} | \code{character()})\cr
 The series keys to query.}
 
 \item{start_period}{(\code{NULL} | \code{character(1)} | \code{integer(1)})\cr
@@ -48,6 +49,10 @@ applied. Default \code{NULL}.}
 \item{last_n}{(\code{NULL} | \code{numeric(1)})\cr
 Number of observations to retrieve from the end of the series. If \code{NULL}, no restriction is
 applied. Default \code{NULL}.}
+
+\item{updated_after}{(\code{NULL} | \code{character(1)})\cr
+ISO 8601 timestamp to retrieve only observations updated after the given time
+(e.g., \code{"2024-06-01T00:00:00"}). If \code{NULL}, no restriction is applied. Default \code{NULL}.}
 }
 \value{
 A \code{\link[data.table:data.table]{data.table::data.table()}} with the requested data.
@@ -71,12 +76,17 @@ Other data:
 \code{\link{bbk_data}()},
 \code{\link{bbk_series}()},
 \code{\link{bde_data}()},
+\code{\link{bde_latest}()},
 \code{\link{bdf_codelist}()},
 \code{\link{bdf_data}()},
 \code{\link{bdf_dataset}()},
+\code{\link{bis_data}()},
 \code{\link{boc_data}()},
 \code{\link{boe_data}()},
+\code{\link{nob_data}()},
 \code{\link{onb_data}()},
-\code{\link{snb_data}()}
+\code{\link{snb_data}()},
+\code{\link{srb_cross_rates}()},
+\code{\link{srb_data}()}
 }
 \concept{data}

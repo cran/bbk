@@ -32,6 +32,10 @@ test_that("ecb_data input validation works", {
   expect_error(ecb_data("abcde", "abc", last_n = 1.5))
   expect_error(ecb_data("abcde", "abc", last_n = -1L))
   expect_error(ecb_data("abcde", "abc", last_n = 0L))
+  # updated_after should be a character(1) or NULL
+  expect_error(ecb_data("abcde", "abc", updated_after = 1L))
+  expect_error(ecb_data("abcde", "abc", updated_after = TRUE))
+  expect_error(ecb_data("abcde", "abc", updated_after = c("a", "b")))
 })
 
 test_that("parse_bbk_data works", {
@@ -46,6 +50,13 @@ test_that("parse_bbk_data works", {
   expect_data_table(actual, min.rows = 1L)
   expect_gt(length(unique(actual$key)), 0L)
   expect_date(actual$date)
+})
+
+test_that("ecb_dimension input validation works", {
+  expect_error(ecb_dimension(1L))
+  expect_error(ecb_dimension(TRUE))
+  expect_error(ecb_dimension(NULL))
+  expect_error(ecb_dimension(c("a", "b")))
 })
 
 test_that("metadata input validation works", {

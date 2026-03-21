@@ -28,6 +28,16 @@ Retrieve time series data from the BoE database.
 \examples{
 \dontshow{if (curl::has_internet()) withAutoprint(\{ # examplesIf}
 \donttest{
+# Bank Rate
+boe_data("IUDBEDR", "2015-01-01")
+
+# SONIA daily rate
+boe_data("IUDSOIA", "2015-01-01")
+
+# 10-year nominal par yield
+boe_data("IUDMNPY", "2015-01-01")
+
+# multiple series
 boe_data(c("IUMABEDR", "IUALBEDR"), "2015-01-01")
 }
 \dontshow{\}) # examplesIf}
@@ -37,12 +47,17 @@ Other data:
 \code{\link{bbk_data}()},
 \code{\link{bbk_series}()},
 \code{\link{bde_data}()},
+\code{\link{bde_latest}()},
 \code{\link{bdf_codelist}()},
 \code{\link{bdf_data}()},
 \code{\link{bdf_dataset}()},
+\code{\link{bis_data}()},
 \code{\link{boc_data}()},
 \code{\link{ecb_data}()},
+\code{\link{nob_data}()},
 \code{\link{onb_data}()},
-\code{\link{snb_data}()}
+\code{\link{snb_data}()},
+\code{\link{srb_cross_rates}()},
+\code{\link{srb_data}()}
 }
 \concept{data}

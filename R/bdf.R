@@ -11,6 +11,8 @@
 #'   Start date of the data. Default `NULL`.
 #' @param end_date (`NULL` | `character(1)` | `Date(1)`)\cr
 #'   End date of the data. Default `NULL`.
+#' @param lang (`character(1)`)\cr
+#'   Language to query. Default `"en"`.
 #' @param api_key (`character(1)`)\cr
 #'   API key to use for the request. Defaults to the value returned by `bdf_key()`, which reads from
 #'   the `BANQUEDEFRANCE_KEY` environment variable.
@@ -31,8 +33,16 @@
 #' # advanced filter with where clause
 #' bdf_data(key = "ICP.M.FR.N.000000.4.ANR", where = "time_period_start >= date'2025-01-01'")
 #' }
-bdf_data <- function(..., key = NULL, start_date = NULL, end_date = NULL, api_key = bdf_key()) {
+bdf_data <- function(
+  ...,
+  key = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  lang = "en",
+  api_key = bdf_key()
+) {
   assert_string(key, min.chars = 1L, null.ok = TRUE)
+  assert_string(lang, min.chars = 1L)
   assert_string(api_key, min.chars = 1L)
   start_date <- assert_dateish(start_date, null.ok = TRUE)
   end_date <- assert_dateish(end_date, null.ok = TRUE)
@@ -50,10 +60,10 @@ bdf_data <- function(..., key = NULL, start_date = NULL, end_date = NULL, api_ke
     where <- c(where, end_date)
   }
   where <- if (length(where) > 0L) paste(where, collapse = " and ") else NULL
-  params <- list(refine = key, where = where)
+  params <- list(refine = key, where = where, lang = lang)
   params <- utils::modifyList(params, list(...))
 
-  dt <- do.call(bdf, c(list(resource = "observations/exports/csv"), params))
+  dt <- do.call(bdf, c(list(resource = "observations/exports/csv", api_key = api_key), params))
   parse_bdf_data(dt)
 }
 
@@ -71,8 +81,9 @@ bdf_data <- function(..., key = NULL, start_date = NULL, end_date = NULL, api_ke
 #' # structure of a dataset
 #' bdf_dataset(where = "dataset_id = 'CONJ2'")
 #' }
-bdf_dataset <- function(...) {
-  dt <- bdf(resource = "webstat-datasets/exports/csv", ...)
+bdf_dataset <- function(..., lang = "en") {
+  assert_string(lang, min.chars = 1L)
+  dt <- bdf(resource = "webstat-datasets/exports/csv", lang = lang, ...)
   parse_bdf_dataset(dt)
 }
 
@@ -90,13 +101,14 @@ bdf_dataset <- function(...) {
 #' # filter for a specific codelist
 #' bdf_codelist(where = "codelist_id = 'CL_FREQ'")
 #' }
-bdf_codelist <- function(...) {
-  bdf(resource = "codelists/exports/csv", ...)
+bdf_codelist <- function(..., lang = "en") {
+  assert_string(lang, min.chars = 1L)
+  bdf(resource = "codelists/exports/csv", lang = lang, ...)
 }
 
 parse_bdf_data <- function(dt) {
   cols <- names(dt)
-  path_cols <- grep("^path_", cols, value = TRUE)
+  path_cols <- grepv("^path_", cols)
   if (length(path_cols) > 0L) {
     dt[, (path_cols) := lapply(mget(path_cols), \(x) strsplit(x, ",", fixed = TRUE))]
   }
@@ -122,11 +134,11 @@ parse_bdf_data <- function(dt) {
 
 parse_bdf_dataset <- function(dt) {
   cols <- names(dt)
-  paths_cols <- grep("^paths_", cols, value = TRUE)
+  paths_cols <- grepv("^paths_", cols)
   if (length(paths_cols) > 0L) {
     dt[, (paths_cols) := lapply(mget(paths_cols), \(x) strsplit(x, ",", fixed = TRUE))]
   }
-  codelist_cols <- grep("_codelists$", cols, value = TRUE)
+  codelist_cols <- grepv("_codelists$", cols)
   if (length(codelist_cols) > 0L) {
     dt[,
       (codelist_cols) := lapply(mget(codelist_cols), function(x) {
@@ -137,15 +149,17 @@ parse_bdf_dataset <- function(dt) {
   dt[]
 }
 
-bdf <- function(resource, ...) {
+bdf <- function(resource, ..., api_key = bdf_key()) {
   tf <- tempfile()
   on.exit(unlink(tf), add = TRUE)
   request("https://webstat.banque-france.fr/api/explore/v2.1/catalog/datasets") |>
     req_url_path_append(resource) |>
-    req_user_agent("bbk (https://m-muecke.github.io/bbk)") |>
-    req_headers(Authorization = paste("Apikey", bdf_key())) |>
+    req_user_agent(bbk_user_agent()) |>
+    req_headers(Authorization = paste("Apikey", api_key)) |>
     req_error(body = bdf_error_body) |>
     req_url_query(..., delimiter = ";", compressed = TRUE) |>
+    req_bbk_retry() |>
+    req_bbk_cache() |>
     req_perform(path = tf)
   fread(file = tf, sep = ";")
 }
