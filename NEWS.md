@@ -1,3 +1,11 @@
+# bbk 0.10.0
+
+* `bbk_data()`, `bis_data()`, and `bdp_data()` gained an `updated_after` argument for incremental retrieval of revised observations, matching the existing parameter on `ecb_data()`. All four now accept a `Date`, `POSIXct`, or ISO 8601 string.
+* `bis_data()` now requests the SDMX generic data format explicitly, fixing a silent regression where the BIS endpoint started returning structure-specific data and the parser produced zero rows.
+* Support for Banco de Portugal (BdP) data.
+* Support for Bank of Japan (BoJ) data.
+* Support for National Bank of Poland (NBP) exchange rates and gold prices.
+
 # bbk 0.9.0
 
 * Add optional caching of API responses via `options(bbk.cache = TRUE)`. Cached

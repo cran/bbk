@@ -16,18 +16,22 @@ bbk is minimal R client for the following APIs:
 
 - [Banco de España
   (BdE)](https://www.bde.es/webbe/en/estadisticas/recursos/api-estadisticas-bde.html)
+- [Banco de Portugal (BdP)](https://bpstat.bportugal.pt/data/docs)
 - [Bank for International Settlements
   (BIS)](https://stats.bis.org/api-doc/v1/)
 - [Bank of Canada
   (BoC)](https://www.bankofcanada.ca/valet-api-how-to/#about)
 - [Bank of England
   (BoE)](https://www.bankofengland.co.uk/boeapps/database)
+- [Bank of Japan
+  (BoJ)](https://www.stat-search.boj.or.jp/index_en.html)
 - [Banque de France
   (BdF)](https://webstat.banque-france.fr/en/pages/guide-migration-api/)
 - [Deutsche Bundesbank
   (BBk)](https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service)
 - [European Central Bank
   (ECB)](https://data.ecb.europa.eu/help/api/overview)
+- [National Bank of Poland (NBP)](https://api.nbp.pl/en.html)
 - [Norges Bank
   (NoB)](https://www.norges-bank.no/en/topics/Statistics/open-data/)
 - [Sveriges Riksbank (SRb)](https://developer.api.riksbank.se/)
@@ -58,9 +62,9 @@ pak::pak("m-muecke/bbk")
 ## Usage
 
 bbk functions are prefixed according to the central bank they access
-(`bbk_`, `ecb_`, `snb_`, `bis_`, `boe_`, `bde_`, `bdf_`, `onb_`, `boc_`,
-`nob_`, `srb_`) and follow the naming conventions of their respective
-APIs.
+(`bbk_`, `ecb_`, `snb_`, `bdp_`, `bis_`, `boe_`, `boj_`, `bde_`, `bdf_`,
+`nbp_`, `onb_`, `boc_`, `nob_`, `srb_`) and follow the naming
+conventions of their respective APIs.
 
 The typical workflow involves:
 
@@ -89,6 +93,8 @@ yield_curve <- bbk_data(
   downloading data from the Bank for International Settlements (BIS).
 - [boe](https://github.com/charlescoverdale/boe): R package for
   downloading data from the Bank of England (BoE).
+- [BOJ](https://github.com/stefanangrick/BOJ): R package for downloading
+  data from the Bank of Japan (BoJ).
 - [SNBdata](https://github.com/enricoschumann/SNBdata): R package for
   downloading data from the Swiss National Bank (SNB).
 - [bundesbank](https://github.com/enricoschumann/bundesbank): R scripts
@@ -99,6 +105,8 @@ yield_curve <- bbk_data(
   OeNB’s API.
 - [pdfetch](https://github.com/abielr/pdfetch): R package for
   downloading economic and financial time series from public sources.
+- [rnbp](https://github.com/szymanskir/rnbp): R package for accessing
+  the National Bank of Poland (NBP) API.
 - [readsdmx](https://github.com/mdequeljoe/readsdmx): R package for
   reading SDMX data and metadata.
 - [rsdmx](https://github.com/eblondel/rsdmx): R package for reading SDMX

@@ -1,0 +1,98 @@
+test_that("bdp_data input validation works", {
+  expect_error(bdp_data("a", "b"))
+  expect_error(bdp_data(1L, 123L))
+  expect_error(bdp_data(1L, "b", series_ids = "abc"))
+  expect_error(bdp_data(1L, "b", start_date = ""))
+  expect_error(bdp_data(1L, "b", end_date = 1L))
+  expect_error(bdp_data(1L, "b", lang = "FR"))
+  expect_error(bdp_data(1L, "b", updated_after = 1L))
+  expect_error(bdp_data(1L, "b", updated_after = TRUE))
+  expect_error(bdp_data(1L, "b", updated_after = NA))
+})
+
+test_that("bdp_data passes updated_after as obs_published_since", {
+  captured <- NULL
+  httr2::local_mocked_responses(function(req) {
+    captured <<- req
+    httr2::response(200L, headers = "content-type: application/json", body = charToRaw("{}"))
+  })
+  local_mocked_bindings(parse_bdp_data = function(json) data.table())
+  bdp_data(54L, "ce3e", updated_after = as.Date("2024-06-01"))
+  expect_match(captured$url, "obs_published_since=2024-06-01T00%3A00%3A00")
+})
+
+test_that("bdp_series input validation works", {
+  expect_error(bdp_series("abc"))
+  expect_error(bdp_series(NULL))
+  expect_error(bdp_series(1L, lang = "FR"))
+})
+
+test_that("bdp_dataset input validation works", {
+  expect_error(bdp_dataset("a"))
+  expect_error(bdp_dataset(1L, lang = "FR"))
+})
+
+test_that("bdp_dimension input validation works", {
+  expect_error(bdp_dimension("a"))
+  expect_error(bdp_dimension(1L, dimension_id = "a"))
+  expect_error(bdp_dimension(1L, lang = "FR"))
+})
+
+test_that("bdp_domain input validation works", {
+  expect_error(bdp_domain("a"))
+  expect_error(bdp_domain(lang = "FR"))
+})
+
+test_that("parse_bdp_data works", {
+  json <- readRDS(test_path("fixtures", "bdp-data.rds"))
+  actual <- parse_bdp_data(json)
+  expect_data_table(actual, min.rows = 1L)
+  expect_date(actual$date)
+  expect_numeric(actual$value)
+  expect_names(names(actual), must.include = c("date", "value", "freq"))
+})
+
+test_that("parse_bdp_series works", {
+  json <- readRDS(test_path("fixtures", "bdp-series.rds"))
+  actual <- parse_bdp_series(json)
+  expect_data_table(actual, nrows = 1L)
+  expect_names(
+    names(actual),
+    must.include = c("id", "label", "dataset_id", "domain_id")
+  )
+  expect_identical(actual$id, 12518356L)
+})
+
+test_that("parse_bdp_dataset works", {
+  json <- readRDS(test_path("fixtures", "bdp-dataset.rds"))
+  actual <- parse_bdp_dataset(json)
+  expect_data_table(actual, min.rows = 1L)
+  expect_names(
+    names(actual),
+    must.include = c("id", "label", "num_series", "obs_updated_at")
+  )
+})
+
+test_that("parse_bdp_dimension works", {
+  items <- readRDS(test_path("fixtures", "bdp-dimension.rds"))
+  actual <- parse_bdp_dimension(items)
+  expect_data_table(actual, min.rows = 1L)
+  expect_names(names(actual), must.include = c("id", "label", "description"))
+})
+
+test_that("parse_bdp_category works", {
+  json <- readRDS(test_path("fixtures", "bdp-category.rds"))
+  actual <- parse_bdp_category(json)
+  expect_data_table(actual, min.rows = 1L)
+  expect_names(names(actual), must.include = c("id", "label"))
+})
+
+test_that("parse_bdp_domain works", {
+  json <- readRDS(test_path("fixtures", "bdp-domains.rds"))
+  actual <- parse_bdp_domain(json)
+  expect_data_table(actual, min.rows = 1L)
+  expect_names(
+    names(actual),
+    must.include = c("id", "label", "has_series", "num_series")
+  )
+})

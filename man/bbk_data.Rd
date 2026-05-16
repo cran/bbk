@@ -13,7 +13,8 @@ bbk_data(
   start_period = NULL,
   end_period = NULL,
   first_n = NULL,
-  last_n = NULL
+  last_n = NULL,
+  updated_after = NULL
 )
 }
 \arguments{
@@ -41,12 +42,17 @@ date). Default \code{NULL}.}
 The end date of the data, in the same format as start_period. If \code{NULL}, no end date
 restriction is applied (data retrieved up to the most recent available date). Default \code{NULL}.}
 
-\item{first_n}{(\code{NULL} | \code{numeric(1)}) \cr
+\item{first_n}{(\code{NULL} | \code{numeric(1)})\cr
 Number of observations to retrieve from the start of the series. If \code{NULL}, no restriction is
 applied. Default \code{NULL}.}
 
 \item{last_n}{(\code{NULL} | \code{numeric(1)})\cr
 Number of observations to retrieve from the end of the series. If \code{NULL}, no restriction is
+applied. Default \code{NULL}.}
+
+\item{updated_after}{(\code{NULL} | \code{character(1)} | \code{Date(1)} | \code{POSIXct(1)})\cr
+Retrieve only observations updated after the given timestamp (e.g.,
+\code{"2024-06-01T00:00:00"}). Useful for incremental retrieval. If \code{NULL}, no restriction is
 applied. Default \code{NULL}.}
 }
 \value{
@@ -84,21 +90,25 @@ head(data)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other data: 
-\code{\link{bbk_series}()},
-\code{\link{bde_data}()},
-\code{\link{bde_latest}()},
-\code{\link{bdf_codelist}()},
-\code{\link{bdf_data}()},
-\code{\link{bdf_dataset}()},
-\code{\link{bis_data}()},
-\code{\link{boc_data}()},
-\code{\link{boe_data}()},
-\code{\link{ecb_data}()},
-\code{\link{nob_data}()},
-\code{\link{onb_data}()},
-\code{\link{snb_data}()},
-\code{\link{srb_cross_rates}()},
-\code{\link{srb_data}()}
+Other data:
+\code{\link[=bbk_series]{bbk_series()}},
+\code{\link[=bde_data]{bde_data()}},
+\code{\link[=bde_latest]{bde_latest()}},
+\code{\link[=bdf_codelist]{bdf_codelist()}},
+\code{\link[=bdf_data]{bdf_data()}},
+\code{\link[=bdf_dataset]{bdf_dataset()}},
+\code{\link[=bdp_data]{bdp_data()}},
+\code{\link[=bis_data]{bis_data()}},
+\code{\link[=boc_data]{boc_data()}},
+\code{\link[=boe_data]{boe_data()}},
+\code{\link[=boj_data]{boj_data()}},
+\code{\link[=ecb_data]{ecb_data()}},
+\code{\link[=nbp_fx_rates]{nbp_fx_rates()}},
+\code{\link[=nbp_gold]{nbp_gold()}},
+\code{\link[=nob_data]{nob_data()}},
+\code{\link[=onb_data]{onb_data()}},
+\code{\link[=snb_data]{snb_data()}},
+\code{\link[=srb_cross_rates]{srb_cross_rates()}},
+\code{\link[=srb_data]{srb_data()}}
 }
 \concept{data}

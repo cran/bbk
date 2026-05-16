@@ -50,9 +50,10 @@ applied. Default \code{NULL}.}
 Number of observations to retrieve from the end of the series. If \code{NULL}, no restriction is
 applied. Default \code{NULL}.}
 
-\item{updated_after}{(\code{NULL} | \code{character(1)})\cr
-ISO 8601 timestamp to retrieve only observations updated after the given time
-(e.g., \code{"2024-06-01T00:00:00"}). If \code{NULL}, no restriction is applied. Default \code{NULL}.}
+\item{updated_after}{(\code{NULL} | \code{character(1)} | \code{Date(1)} | \code{POSIXct(1)})\cr
+Retrieve only observations updated after the given timestamp (e.g.,
+\code{"2024-06-01T00:00:00"}). Useful for incremental retrieval. If \code{NULL}, no restriction is
+applied. Default \code{NULL}.}
 }
 \value{
 A \code{\link[data.table:data.table]{data.table::data.table()}} with the requested data.
@@ -72,21 +73,25 @@ ecb_data("EXR", c("D.USD", "JPY.EUR.SP00.A"))
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other data: 
-\code{\link{bbk_data}()},
-\code{\link{bbk_series}()},
-\code{\link{bde_data}()},
-\code{\link{bde_latest}()},
-\code{\link{bdf_codelist}()},
-\code{\link{bdf_data}()},
-\code{\link{bdf_dataset}()},
-\code{\link{bis_data}()},
-\code{\link{boc_data}()},
-\code{\link{boe_data}()},
-\code{\link{nob_data}()},
-\code{\link{onb_data}()},
-\code{\link{snb_data}()},
-\code{\link{srb_cross_rates}()},
-\code{\link{srb_data}()}
+Other data:
+\code{\link[=bbk_data]{bbk_data()}},
+\code{\link[=bbk_series]{bbk_series()}},
+\code{\link[=bde_data]{bde_data()}},
+\code{\link[=bde_latest]{bde_latest()}},
+\code{\link[=bdf_codelist]{bdf_codelist()}},
+\code{\link[=bdf_data]{bdf_data()}},
+\code{\link[=bdf_dataset]{bdf_dataset()}},
+\code{\link[=bdp_data]{bdp_data()}},
+\code{\link[=bis_data]{bis_data()}},
+\code{\link[=boc_data]{boc_data()}},
+\code{\link[=boe_data]{boe_data()}},
+\code{\link[=boj_data]{boj_data()}},
+\code{\link[=nbp_fx_rates]{nbp_fx_rates()}},
+\code{\link[=nbp_gold]{nbp_gold()}},
+\code{\link[=nob_data]{nob_data()}},
+\code{\link[=onb_data]{onb_data()}},
+\code{\link[=snb_data]{snb_data()}},
+\code{\link[=srb_cross_rates]{srb_cross_rates()}},
+\code{\link[=srb_data]{srb_data()}}
 }
 \concept{data}
