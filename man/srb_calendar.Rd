@@ -34,6 +34,7 @@ srb_calendar("2024-01-01", "2024-01-31")
 Other metadata:
 \code{\link[=bbk_dimension]{bbk_dimension()}},
 \code{\link[=bbk_metadata]{bbk_metadata()}},
+\code{\link[=bdf_dimension]{bdf_dimension()}},
 \code{\link[=bdp_dataset]{bdp_dataset()}},
 \code{\link[=bdp_dimension]{bdp_dimension()}},
 \code{\link[=bdp_domain]{bdp_domain()}},
@@ -41,6 +42,10 @@ Other metadata:
 \code{\link[=bis_dimension]{bis_dimension()}},
 \code{\link[=bis_metadata]{bis_metadata()}},
 \code{\link[=boj_metadata]{boj_metadata()}},
+\code{\link[=cnb_dimension]{cnb_dimension()}},
+\code{\link[=cnb_indicators]{cnb_indicators()}},
+\code{\link[=cnb_snapshots]{cnb_snapshots()}},
+\code{\link[=cnb_tree]{cnb_tree()}},
 \code{\link[=ecb_dimension]{ecb_dimension()}},
 \code{\link[=ecb_metadata]{ecb_metadata()}},
 \code{\link[=nob_dimension]{nob_dimension()}},
@@ -51,6 +56,8 @@ Other metadata:
 \code{\link[=onb_metadata]{onb_metadata()}},
 \code{\link[=onb_toc]{onb_toc()}},
 \code{\link[=snb_dimension]{snb_dimension()}},
+\code{\link[=snb_metadata]{snb_metadata()}},
+\code{\link[=snb_toc]{snb_toc()}},
 \code{\link[=srb_series]{srb_series()}}
 }
 \concept{metadata}

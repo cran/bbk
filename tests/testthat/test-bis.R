@@ -31,7 +31,7 @@ test_that("bis_data input validation works", {
 })
 
 test_that("bis_data passes updated_after as updatedAfter", {
-  captured <- NULL
+  captured = NULL
   httr2::local_mocked_responses(function(req) {
     captured <<- req
     httr2::response(200L, headers = "content-type: application/xml", body = charToRaw("<x/>"))
@@ -42,13 +42,35 @@ test_that("bis_data passes updated_after as updatedAfter", {
 })
 
 test_that("parse_bis_data works", {
-  body <- xml2::read_xml(test_path("fixtures", "bis-data.xml"))
-  actual <- parse_bis_data(body)
+  body = xml2::read_xml(test_path("fixtures", "bis-data.xml"))
+  actual = parse_bis_data(body)
   expect_data_table(actual, min.rows = 1L)
   expect_date(actual$date)
   expect_numeric(actual$value)
   expect_true(all(c("date", "key", "value", "freq") %in% names(actual)))
   expect_identical(unique(actual$freq), "monthly")
+})
+
+test_that("parse_bis_data drops observations without a value and keeps alignment", {
+  body = xml2::read_xml(
+    '<message:GenericData xmlns:message="m" xmlns:generic="http://generic">
+      <message:DataSet>
+        <generic:Series>
+          <generic:SeriesKey>
+            <generic:Value id="FREQ" value="M"/>
+            <generic:Value id="REF_AREA" value="US"/>
+          </generic:SeriesKey>
+          <generic:Attributes><generic:Value id="TITLE" value="t"/></generic:Attributes>
+          <generic:Obs><generic:ObsDimension value="2020-01"/><generic:ObsValue value="1"/></generic:Obs>
+          <generic:Obs><generic:ObsDimension value="2020-02"/></generic:Obs>
+          <generic:Obs><generic:ObsDimension value="2020-03"/><generic:ObsValue value="3"/></generic:Obs>
+        </generic:Series>
+      </message:DataSet>
+    </message:GenericData>'
+  )
+  actual = parse_bis_data(body)
+  expect_identical(actual$date, as.Date(c("2020-01-01", "2020-03-01")))
+  expect_identical(actual$value, c(1, 3))
 })
 
 test_that("bis_dimension input validation works", {
@@ -72,15 +94,15 @@ test_that("bis_data returns rows from the live endpoint", {
   skip_on_cran()
   skip_on_ci()
 
-  x <- bis_data("WS_CBPOL", "M.CH", last_n = 5L)
+  x = bis_data("WS_CBPOL", "M.CH", last_n = 5L)
   expect_data_table(x, min.rows = 1L)
   expect_true(all(c("date", "key", "value", "freq") %in% names(x)))
 })
 
 test_that("sdmx_metadata works for bis", {
-  body <- xml2::read_xml(test_path("fixtures", "bis-metadata.xml"))
-  entries <- xml2::xml_find_all(body, "//str:Dataflow")
-  actual <- sdmx_metadata(entries)
+  body = xml2::read_xml(test_path("fixtures", "bis-metadata.xml"))
+  entries = xml2::xml_find_all(body, "//str:Dataflow")
+  actual = sdmx_metadata(entries)
   expect_data_table(actual, min.rows = 1L)
   expect_true(all(c("id", "name") %in% names(actual)))
   expect_true("WS_CBPOL" %in% actual$id)

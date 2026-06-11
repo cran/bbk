@@ -11,7 +11,7 @@ test_that("bdp_data input validation works", {
 })
 
 test_that("bdp_data passes updated_after as obs_published_since", {
-  captured <- NULL
+  captured = NULL
   httr2::local_mocked_responses(function(req) {
     captured <<- req
     httr2::response(200L, headers = "content-type: application/json", body = charToRaw("{}"))
@@ -44,17 +44,32 @@ test_that("bdp_domain input validation works", {
 })
 
 test_that("parse_bdp_data works", {
-  json <- readRDS(test_path("fixtures", "bdp-data.rds"))
-  actual <- parse_bdp_data(json)
+  json = readRDS(test_path("fixtures", "bdp-data.rds"))
+  actual = parse_bdp_data(json)
   expect_data_table(actual, min.rows = 1L)
   expect_date(actual$date)
   expect_numeric(actual$value)
   expect_names(names(actual), must.include = c("date", "value", "freq"))
 })
 
+test_that("parse_bdp_data keeps missing observations as NA instead of collapsing", {
+  json = list(
+    role = list(time = list("reference_date")),
+    dimension = list(
+      reference_date = list(category = list(index = list("2020-01-01", "2020-02-01", "2020-03-01")))
+    ),
+    value = list(1.5, NULL, 2.0),
+    status = list("F", "M", "F"),
+    extension = list(series = list(list(id = 1L, label = "s1")))
+  )
+  actual = parse_bdp_data(json)
+  expect_identical(actual$value, c(1.5, NA, 2.0))
+  expect_identical(actual$date, as.Date(c("2020-01-01", "2020-02-01", "2020-03-01")))
+})
+
 test_that("parse_bdp_series works", {
-  json <- readRDS(test_path("fixtures", "bdp-series.rds"))
-  actual <- parse_bdp_series(json)
+  json = readRDS(test_path("fixtures", "bdp-series.rds"))
+  actual = parse_bdp_series(json)
   expect_data_table(actual, nrows = 1L)
   expect_names(
     names(actual),
@@ -64,8 +79,8 @@ test_that("parse_bdp_series works", {
 })
 
 test_that("parse_bdp_dataset works", {
-  json <- readRDS(test_path("fixtures", "bdp-dataset.rds"))
-  actual <- parse_bdp_dataset(json)
+  json = readRDS(test_path("fixtures", "bdp-dataset.rds"))
+  actual = parse_bdp_dataset(json)
   expect_data_table(actual, min.rows = 1L)
   expect_names(
     names(actual),
@@ -74,22 +89,22 @@ test_that("parse_bdp_dataset works", {
 })
 
 test_that("parse_bdp_dimension works", {
-  items <- readRDS(test_path("fixtures", "bdp-dimension.rds"))
-  actual <- parse_bdp_dimension(items)
+  items = readRDS(test_path("fixtures", "bdp-dimension.rds"))
+  actual = parse_bdp_dimension(items)
   expect_data_table(actual, min.rows = 1L)
   expect_names(names(actual), must.include = c("id", "label", "description"))
 })
 
 test_that("parse_bdp_category works", {
-  json <- readRDS(test_path("fixtures", "bdp-category.rds"))
-  actual <- parse_bdp_category(json)
+  json = readRDS(test_path("fixtures", "bdp-category.rds"))
+  actual = parse_bdp_category(json)
   expect_data_table(actual, min.rows = 1L)
   expect_names(names(actual), must.include = c("id", "label"))
 })
 
 test_that("parse_bdp_domain works", {
-  json <- readRDS(test_path("fixtures", "bdp-domains.rds"))
-  actual <- parse_bdp_domain(json)
+  json = readRDS(test_path("fixtures", "bdp-domains.rds"))
+  actual = parse_bdp_domain(json)
   expect_data_table(actual, min.rows = 1L)
   expect_names(
     names(actual),

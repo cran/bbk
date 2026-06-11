@@ -33,7 +33,7 @@
 #' # advanced filter with where clause
 #' bdf_data(key = "ICP.M.FR.N.000000.4.ANR", where = "time_period_start >= date'2025-01-01'")
 #' }
-bdf_data <- function(
+bdf_data = function(
   ...,
   key = NULL,
   start_date = NULL,
@@ -44,26 +44,24 @@ bdf_data <- function(
   assert_string(key, min.chars = 1L, null.ok = TRUE)
   assert_string(lang, min.chars = 1L)
   assert_string(api_key, min.chars = 1L)
-  start_date <- assert_dateish(start_date, null.ok = TRUE)
-  end_date <- assert_dateish(end_date, null.ok = TRUE)
+  start_date = assert_dateish(start_date, null.ok = TRUE)
+  end_date = assert_dateish(end_date, null.ok = TRUE)
 
-  if (!is.null(key)) {
-    key <- sprintf('series_key:"%s"', key)
-  }
-  where <- character()
+  key = key %&&% sprintf('series_key:"%s"', key)
+  where = character()
   if (!is.null(start_date)) {
-    start_date <- sprintf("time_period_start >= date'%s'", start_date)
-    where <- c(where, start_date)
+    start_date = sprintf("time_period_start >= date'%s'", start_date)
+    where = c(where, start_date)
   }
   if (!is.null(end_date)) {
-    end_date <- sprintf("time_period_end <= date'%s'", end_date)
-    where <- c(where, end_date)
+    end_date = sprintf("time_period_end <= date'%s'", end_date)
+    where = c(where, end_date)
   }
-  where <- if (length(where) > 0L) paste(where, collapse = " and ") else NULL
-  params <- list(refine = key, where = where, lang = lang)
-  params <- utils::modifyList(params, list(...))
+  where = if (length(where) > 0L) paste(where, collapse = " and ") else NULL
+  params = list(refine = key, where = where, lang = lang)
+  params = utils::modifyList(params, list(...))
 
-  dt <- do.call(bdf, c(list(resource = "observations/exports/csv", api_key = api_key), params))
+  dt = do.call(bdf, c(list(resource = "observations/exports/csv", api_key = api_key), params))
   parse_bdf_data(dt)
 }
 
@@ -81,9 +79,9 @@ bdf_data <- function(
 #' # structure of a dataset
 #' bdf_dataset(where = "dataset_id = 'CONJ2'")
 #' }
-bdf_dataset <- function(..., lang = "en") {
+bdf_dataset = function(..., lang = "en") {
   assert_string(lang, min.chars = 1L)
-  dt <- bdf(resource = "webstat-datasets/exports/csv", lang = lang, ...)
+  dt = bdf(resource = "webstat-datasets/exports/csv", lang = lang, ...)
   parse_bdf_dataset(dt)
 }
 
@@ -101,19 +99,70 @@ bdf_dataset <- function(..., lang = "en") {
 #' # filter for a specific codelist
 #' bdf_codelist(where = "codelist_id = 'CL_FREQ'")
 #' }
-bdf_codelist <- function(..., lang = "en") {
+bdf_codelist = function(..., lang = "en") {
   assert_string(lang, min.chars = 1L)
   bdf(resource = "codelists/exports/csv", lang = lang, ...)
 }
 
-parse_bdf_data <- function(dt) {
-  cols <- names(dt)
-  path_cols <- grepv("^path_", cols)
+#' Fetch Banque de France (BdF) dimensions
+#'
+#' Retrieve the dimension structure for a given dataset from the BdF Webstat API.
+#'
+#' @param dataset_id (`character(1)`)\cr
+#'   The id of the dataset to query (e.g., `"CONJ2"`). See [bdf_dataset()] for available datasets.
+#' @inheritParams bdf_data
+#' @returns A [data.table::data.table()] with columns:
+#'   \item{id}{The dimension id (e.g., `"FREQ"`, `"REF_AREA"`)}
+#'   \item{position}{The position of the dimension in the series key}
+#'   \item{codelist}{The id of the associated codelist}
+#' @source <https://webstat.banque-france.fr/en/pages/guide-migration-api/>
+#' @family metadata
+#' @export
+#' @examples
+#' \dontrun{
+#' bdf_dimension("CONJ2")
+#' }
+bdf_dimension = function(dataset_id, lang = "en", api_key = bdf_key()) {
+  assert_string(dataset_id, min.chars = 1L)
+  assert_string(lang, min.chars = 1L)
+  assert_string(api_key, min.chars = 1L)
+
+  where = sprintf("dataset_id = '%s'", toupper(dataset_id))
+  dt = bdf(
+    resource = "webstat-datasets/exports/csv",
+    api_key = api_key,
+    lang = lang,
+    where = where,
+    select = "dimensions_and_codelists"
+  )
+  parse_bdf_dimension(dt)
+}
+
+parse_bdf_dimension = function(dt) {
+  empty = data.table(id = character(), position = integer(), codelist = character())
+  if (nrow(dt) == 0L || "dimensions_and_codelists" %nin% names(dt)) {
+    return(empty)
+  }
+  raw = gsub('""', '"', dt$dimensions_and_codelists[[1L]], fixed = TRUE)
+  obj = jsonlite::fromJSON(raw)
+  if (length(obj) == 0L) {
+    return(empty)
+  }
+  data.table(
+    id = names(obj),
+    position = seq_along(obj),
+    codelist = unname(map_chr(obj, \(x) x %||% NA_character_))
+  )
+}
+
+parse_bdf_data = function(dt) {
+  cols = names(dt)
+  path_cols = grepv("^path_", cols)
   if (length(path_cols) > 0L) {
     dt[, (path_cols) := map(mget(path_cols), \(x) strsplit(x, ",", fixed = TRUE))]
   }
   if ("observations_attributes_and_values" %in% cols) {
-    observations_attributes_and_values <- NULL # nolint
+    observations_attributes_and_values = NULL # nolint
     dt[,
       observations_attributes_and_values := gsub(
         '""',
@@ -132,13 +181,13 @@ parse_bdf_data <- function(dt) {
   dt[]
 }
 
-parse_bdf_dataset <- function(dt) {
-  cols <- names(dt)
-  paths_cols <- grepv("^paths_", cols)
+parse_bdf_dataset = function(dt) {
+  cols = names(dt)
+  paths_cols = grepv("^paths_", cols)
   if (length(paths_cols) > 0L) {
     dt[, (paths_cols) := map(mget(paths_cols), \(x) strsplit(x, ",", fixed = TRUE))]
   }
-  codelist_cols <- grepv("_codelists$", cols)
+  codelist_cols = grepv("_codelists$", cols)
   if (length(codelist_cols) > 0L) {
     dt[,
       (codelist_cols) := map(mget(codelist_cols), function(x) {
@@ -149,8 +198,8 @@ parse_bdf_dataset <- function(dt) {
   dt[]
 }
 
-bdf <- function(resource, ..., api_key = bdf_key()) {
-  tf <- tempfile()
+bdf = function(resource, ..., api_key = bdf_key()) {
+  tf = tempfile()
   on.exit(unlink(tf), add = TRUE)
   request("https://webstat.banque-france.fr/api/explore/v2.1/catalog/datasets") |>
     req_url_path_append(resource) |>
@@ -164,30 +213,16 @@ bdf <- function(resource, ..., api_key = bdf_key()) {
   fread(file = tf, sep = ";")
 }
 
-bdf_error_body <- function(resp) {
-  content_type <- resp_content_type(resp)
+bdf_error_body = function(resp) {
+  content_type = resp_content_type(resp)
   if (identical(content_type, "application/json")) {
-    json <- resp_body_json(resp)
-    msg <- c(json$error_key, json$message)
-    docs <- "See docs at <https://webstat.banque-france.fr/en/pages/guide-migration-api>" # nolint
+    json = resp_body_json(resp)
+    msg = c(json$error_key, json$message)
+    docs = "See docs at <https://webstat.banque-france.fr/en/pages/guide-migration-api>" # nolint
     c(msg, docs)
   }
 }
 
-bdf_key <- function() {
-  key <- Sys.getenv("BANQUEDEFRANCE_KEY")
-  if (nzchar(key)) {
-    return(key)
-  }
-  if (is_testing()) {
-    testthat::skip(sprintf("%s env var is not configured", "BDF"))
-  }
-  stop(
-    "No API key found, please supply with `api_key` argument or with BANQUEDEFRANCE_KEY env var.",
-    call. = FALSE
-  )
-}
-
-is_testing <- function() {
-  identical(Sys.getenv("TESTTHAT"), "true")
+bdf_key = function() {
+  get_api_key("BANQUEDEFRANCE_KEY")
 }

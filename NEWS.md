@@ -1,3 +1,25 @@
+# bbk 0.11.0
+
+## New features
+
+* `bdf_dimension()` returns the dimension structure for a given Banque de France dataset.
+* `cnb_czeonia()` returns the CZEONIA overnight reference rate from the Czech National Bank (CNB).
+* `cnb_data()`, `cnb_indicators()`, `cnb_dimension()`, `cnb_tree()`, and `cnb_snapshots()` add support for the Czech National Bank (CNB) ARAD database, using an API key from `CNB_ARAD_KEY`.
+* `cnb_fx_other_rates()` returns the Czech National Bank (CNB) monthly exchange rates for other (less commonly traded) currencies.
+* `cnb_fx_rates()` and `cnb_pribor()` add support for Czech National Bank (CNB) exchange rate fixings and PRIBOR reference rates.
+* `snb_metadata()` returns cube-level metadata (title, frequency, source, publication date) from the SNB data portal.
+* `snb_toc()` returns the publication topic tree from the SNB data portal.
+
+## Bug fixes
+
+* Data requests no longer abort when a series uses an unsupported frequency code; the code is kept and the date is returned unparsed.
+* `bbk_data()` now returns the correct observations per series when querying multiple keys.
+* `bdp_data()` now keeps missing observations as `NA` instead of returning an empty result.
+* `bis_data()` and `ecb_data()` now keep dates and values aligned when a series has observations without a value.
+* `boc_data()` now applies `start_date` and `end_date` when fetching a group, which were previously ignored.
+* `boj_data()` no longer errors when a series omits both the English and Japanese translations of its name or unit.
+* `onb_data()` no longer errors and returns an empty table when a series has no observations in the requested period.
+
 # bbk 0.10.0
 
 * `bbk_data()`, `bis_data()`, and `bdp_data()` gained an `updated_after` argument for incremental retrieval of revised observations, matching the existing parameter on `ecb_data()`. All four now accept a `Date`, `POSIXct`, or ISO 8601 string.

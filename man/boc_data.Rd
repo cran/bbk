@@ -36,11 +36,11 @@ Retrieve time series data from the Bank of Canada Valet API.
 \examples{
 \dontrun{
 # fetch all data for a single group
-dt <- boc_data(group_name = "FX_RATES_DAILY")
+dt = boc_data(group_name = "FX_RATES_DAILY")
 head(dt)
 
 # or for multiple series ids
-dt <- boc_data(
+dt = boc_data(
   series_name = c("FXUSDCAD", "FXEURCAD"),
   start_date = "2023-01-23",
   end_date = "2023-07-19"
@@ -61,6 +61,11 @@ Other data:
 \code{\link[=bis_data]{bis_data()}},
 \code{\link[=boe_data]{boe_data()}},
 \code{\link[=boj_data]{boj_data()}},
+\code{\link[=cnb_czeonia]{cnb_czeonia()}},
+\code{\link[=cnb_data]{cnb_data()}},
+\code{\link[=cnb_fx_other_rates]{cnb_fx_other_rates()}},
+\code{\link[=cnb_fx_rates]{cnb_fx_rates()}},
+\code{\link[=cnb_pribor]{cnb_pribor()}},
 \code{\link[=ecb_data]{ecb_data()}},
 \code{\link[=nbp_fx_rates]{nbp_fx_rates()}},
 \code{\link[=nbp_gold]{nbp_gold()}},

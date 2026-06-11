@@ -27,7 +27,7 @@ The series keys to query.}
 \item{start_period}{(\code{NULL} | \code{character(1)} | \code{integer(1)})\cr
 The start date of the data. Supported formats:
 \itemize{
-\item YYYY for annual data (e.g., `2019``)
+\item YYYY for annual data (e.g., \code{2019})
 \item YYYY-S[1-2] for semi-annual data (e.g., \code{"2019-S1"})
 \item YYYY-Q[1-4] for quarterly data (e.g., \code{"2019-Q1"})
 \item YYYY-MM for monthly data (e.g., \code{"2019-01"})
@@ -65,15 +65,15 @@ Retrieve time series data from the Bundesbank SDMX Web Service.
 \dontshow{if (curl::has_internet()) withAutoprint(\{ # examplesIf}
 \donttest{
 # fetch all data for a given flow and key
-data <- bbk_data("BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A")
+data = bbk_data("BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A")
 head(data)
 
 # fetch data for multiple keys
-data <- bbk_data("BBEX3", c("M.ISK.EUR", "USD.CA.AC.A01"))
+data = bbk_data("BBEX3", c("M.ISK.EUR", "USD.CA.AC.A01"))
 head(data)
 
 # specified period (start date-end date) for daily data
-data <- bbk_data(
+data = bbk_data(
   "BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A",
   start_period = "2020-01-01",
   end_period = "2020-08-01"
@@ -81,7 +81,7 @@ data <- bbk_data(
 head(data)
 
 # or only specify the start date
-data <- bbk_data(
+data = bbk_data(
   "BBSIS", "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A",
   start_period = "2024-04-01"
 )
@@ -102,6 +102,11 @@ Other data:
 \code{\link[=boc_data]{boc_data()}},
 \code{\link[=boe_data]{boe_data()}},
 \code{\link[=boj_data]{boj_data()}},
+\code{\link[=cnb_czeonia]{cnb_czeonia()}},
+\code{\link[=cnb_data]{cnb_data()}},
+\code{\link[=cnb_fx_other_rates]{cnb_fx_other_rates()}},
+\code{\link[=cnb_fx_rates]{cnb_fx_rates()}},
+\code{\link[=cnb_pribor]{cnb_pribor()}},
 \code{\link[=ecb_data]{ecb_data()}},
 \code{\link[=nbp_fx_rates]{nbp_fx_rates()}},
 \code{\link[=nbp_gold]{nbp_gold()}},
