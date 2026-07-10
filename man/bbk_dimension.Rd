@@ -4,7 +4,7 @@
 \alias{bbk_dimension}
 \title{Fetch Deutsche Bundesbank (BBk) dimensions}
 \source{
-\url{https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-metadata}
+\url{https://api.statistiken.bundesbank.de/}
 }
 \usage{
 bbk_dimension(id)
@@ -31,7 +31,9 @@ bbk_dimension("BBK_ERX")
 }
 \seealso{
 Other metadata:
+\code{\link[=banxico_metadata]{banxico_metadata()}},
 \code{\link[=bbk_metadata]{bbk_metadata()}},
+\code{\link[=bcb_currencies]{bcb_currencies()}},
 \code{\link[=bdf_dimension]{bdf_dimension()}},
 \code{\link[=bdp_dataset]{bdp_dataset()}},
 \code{\link[=bdp_dimension]{bdp_dimension()}},

@@ -51,8 +51,10 @@ cnb_tree(indicator_id = "MIRFMDF12ERATPECD")
 }
 \seealso{
 Other metadata:
+\code{\link[=banxico_metadata]{banxico_metadata()}},
 \code{\link[=bbk_dimension]{bbk_dimension()}},
 \code{\link[=bbk_metadata]{bbk_metadata()}},
+\code{\link[=bcb_currencies]{bcb_currencies()}},
 \code{\link[=bdf_dimension]{bdf_dimension()}},
 \code{\link[=bdp_dataset]{bdp_dataset()}},
 \code{\link[=bdp_dimension]{bdp_dimension()}},

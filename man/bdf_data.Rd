@@ -59,8 +59,15 @@ bdf_data(key = "ICP.M.FR.N.000000.4.ANR", where = "time_period_start >= date'202
 }
 \seealso{
 Other data:
+\code{\link[=banxico_data]{banxico_data()}},
 \code{\link[=bbk_data]{bbk_data()}},
 \code{\link[=bbk_series]{bbk_series()}},
+\code{\link[=bcb_data]{bcb_data()}},
+\code{\link[=bcb_expectations]{bcb_expectations()}},
+\code{\link[=bcb_fx_rates]{bcb_fx_rates()}},
+\code{\link[=bcb_inflation]{bcb_inflation()}},
+\code{\link[=bcb_selic]{bcb_selic()}},
+\code{\link[=bcb_top5]{bcb_top5()}},
 \code{\link[=bde_data]{bde_data()}},
 \code{\link[=bde_latest]{bde_latest()}},
 \code{\link[=bdf_codelist]{bdf_codelist()}},

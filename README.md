@@ -14,8 +14,11 @@ version](https://m-muecke.r-universe.dev/bbk/badges/version)](https://m-muecke.r
 
 bbk is minimal R client for the following APIs:
 
+- [Banco Central do Brasil (BCB)](https://dadosabertos.bcb.gov.br/)
 - [Banco de España
   (BdE)](https://www.bde.es/webbe/en/estadisticas/recursos/api-estadisticas-bde.html)
+- [Banco de México
+  (Banxico)](https://www.banxico.org.mx/SieAPIRest/service/v1/)
 - [Banco de Portugal (BdP)](https://bpstat.bportugal.pt/data/docs)
 - [Bank for International Settlements
   (BIS)](https://stats.bis.org/api-doc/v1/)
@@ -27,8 +30,7 @@ bbk is minimal R client for the following APIs:
 - [Banque de France
   (BdF)](https://webstat.banque-france.fr/en/pages/guide-migration-api/)
 - [Czech National Bank (CNB)](https://api.cnb.cz/cnbapi/swagger-ui.html)
-- [Deutsche Bundesbank
-  (BBk)](https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service)
+- [Deutsche Bundesbank (BBk)](https://api.statistiken.bundesbank.de/)
 - [European Central Bank
   (ECB)](https://data.ecb.europa.eu/help/api/overview)
 - [National Bank of Poland (NBP)](https://api.nbp.pl/en.html)
@@ -63,8 +65,8 @@ pak::pak("m-muecke/bbk")
 
 bbk functions are prefixed according to the central bank they access
 (`bbk_`, `ecb_`, `snb_`, `bdp_`, `bis_`, `boe_`, `boj_`, `bde_`, `bdf_`,
-`cnb_`, `nbp_`, `onb_`, `boc_`, `nob_`, `srb_`) and follow the naming
-conventions of their respective APIs.
+`bcb_`, `cnb_`, `nbp_`, `onb_`, `boc_`, `nob_`, `srb_`) and follow the
+naming conventions of their respective APIs.
 
 The typical workflow involves:
 
@@ -107,6 +109,8 @@ yield_curve = bbk_data(
   OeNB’s API.
 - [pdfetch](https://github.com/abielr/pdfetch): R package for
   downloading economic and financial time series from public sources.
+- [rbcb](https://github.com/wilsonfreitas/rbcb): R interface to the
+  Banco Central do Brasil (BCB) web services.
 - [rnbp](https://github.com/szymanskir/rnbp): R package for accessing
   the National Bank of Poland (NBP) API.
 - [readsdmx](https://github.com/mdequeljoe/readsdmx): R package for
@@ -115,6 +119,8 @@ yield_curve = bbk_data(
   data and metadata.
 - [rwebstat](https://github.com/cran/rwebstat): R package for accessing
   the Banque de France’s Webstat API.
+- [siebanxicor](https://github.com/cran/siebanxicor): R package for
+  querying data series from the Banco de México (Banxico) SIE API.
 - [tidyBdE](https://github.com/rOpenSpain/tidyBdE): R package for
   accessing the Banco de España’s API.
 - [valet](https://github.com/runkelcorey/valet): R client to the Bank of

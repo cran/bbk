@@ -4,7 +4,7 @@
 \alias{bbk_metadata}
 \title{Fetch Deutsche Bundesbank (BBk) metadata}
 \source{
-\url{https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-metadata}
+\url{https://api.statistiken.bundesbank.de/}
 }
 \usage{
 bbk_metadata(type, id = NULL, lang = "en")
@@ -41,7 +41,9 @@ bbk_metadata("concept", "CS_BBK_BSPL")
 }
 \seealso{
 Other metadata:
+\code{\link[=banxico_metadata]{banxico_metadata()}},
 \code{\link[=bbk_dimension]{bbk_dimension()}},
+\code{\link[=bcb_currencies]{bcb_currencies()}},
 \code{\link[=bdf_dimension]{bdf_dimension()}},
 \code{\link[=bdp_dataset]{bdp_dataset()}},
 \code{\link[=bdp_dimension]{bdp_dimension()}},

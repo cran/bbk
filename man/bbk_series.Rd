@@ -4,7 +4,7 @@
 \alias{bbk_series}
 \title{Fetch the Deutsche Bundesbank (BBk) series}
 \source{
-\url{https://www.bundesbank.de/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-data}
+\url{https://api.statistiken.bundesbank.de/}
 }
 \usage{
 bbk_series(key)
@@ -32,7 +32,14 @@ bbk_series("BBBK11.D.TTA000")
 \code{\link[=bbk_data]{bbk_data()}} for an endpoint with more options.
 
 Other data:
+\code{\link[=banxico_data]{banxico_data()}},
 \code{\link[=bbk_data]{bbk_data()}},
+\code{\link[=bcb_data]{bcb_data()}},
+\code{\link[=bcb_expectations]{bcb_expectations()}},
+\code{\link[=bcb_fx_rates]{bcb_fx_rates()}},
+\code{\link[=bcb_inflation]{bcb_inflation()}},
+\code{\link[=bcb_selic]{bcb_selic()}},
+\code{\link[=bcb_top5]{bcb_top5()}},
 \code{\link[=bde_data]{bde_data()}},
 \code{\link[=bde_latest]{bde_latest()}},
 \code{\link[=bdf_codelist]{bdf_codelist()}},
