@@ -20,8 +20,8 @@ codes per request. All codes must have the same frequency. Use \code{\link[=boj_
 available codes.}
 
 \item{start_date}{(\code{NULL} | \code{character(1)} | \code{integer(1)})\cr
-Start date of the data. Format depends on frequency: \code{"YYYYMMDD"} or \code{YYYY} for daily,
-\code{"YYYYMM"} for monthly, \code{"YYYYQQ"} for quarterly (where QQ is 01-04), \code{"YYYY"} for annual.
+Start date of the data. Format depends on frequency: \code{"YYYYMM"} for daily, weekly, and
+monthly data, \code{"YYYYQQ"} for quarterly (where QQ is 01-04), and \code{"YYYY"} for annual.
 If \code{NULL}, all available data is returned. Default \code{NULL}.}
 
 \item{end_date}{(\code{NULL} | \code{character(1)} | \code{integer(1)})\cr
@@ -68,6 +68,7 @@ Other data:
 \code{\link[=bis_data]{bis_data()}},
 \code{\link[=boc_data]{boc_data()}},
 \code{\link[=boe_data]{boe_data()}},
+\code{\link[=boi_data]{boi_data()}},
 \code{\link[=cnb_czeonia]{cnb_czeonia()}},
 \code{\link[=cnb_data]{cnb_data()}},
 \code{\link[=cnb_fx_other_rates]{cnb_fx_other_rates()}},

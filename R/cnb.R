@@ -112,8 +112,8 @@ cnb_czeonia = function(date = NULL, year = NULL) {
 #' CNB API. These currencies are not part of the daily fixing returned by [cnb_fx_rates()].
 #'
 #' @param year_month (`NULL` | `character(1)`)\cr
-#'   The month to query in `"YYYY-MM"` format, returning rates for all currencies in that month. If
-#'   `NULL`, the latest available month is returned. Mutually exclusive with `year`. Default `NULL`.
+#'   The month to query in `"YYYY-MM"` format, returning rates for all currencies in that month. The
+#'   fixing for a month is published at its end. Mutually exclusive with `year`. Default `NULL`.
 #' @param year (`NULL` | `integer(1)`)\cr
 #'   A calendar year, returning rates for all currencies in every month of that year. Mutually
 #'   exclusive with `year_month`. Default `NULL`.
@@ -125,9 +125,6 @@ cnb_czeonia = function(date = NULL, year = NULL) {
 #' @export
 #' @examplesIf curl::has_internet()
 #' \donttest{
-#' # latest month for all other currencies
-#' cnb_fx_other_rates()
-#'
 #' # a specific month
 #' cnb_fx_other_rates(year_month = "2024-01")
 #'
@@ -139,6 +136,9 @@ cnb_fx_other_rates = function(year_month = NULL, year = NULL, lang = "EN") {
   year = assert_count(year, positive = TRUE, null.ok = TRUE, coerce = TRUE)
   assert_choice(lang, c("EN", "CZ"))
   assert_exclusive(year_month, year)
+  if (is.null(year_month) && is.null(year)) {
+    stop("Exactly one of `year_month` or `year` must be provided.", call. = FALSE)
+  }
 
   json = if (is.null(year)) {
     cnb("fxrates/daily-month", yearMonth = year_month, lang = lang)
@@ -154,7 +154,7 @@ parse_cnb_czeonia = function(json) {
     recs = list(recs)
   }
   if (length(recs) == 0L) {
-    return(data.table(date = as.Date(character()), czeonia = numeric(), volume = numeric()))
+    return(data.table(date = as.Date(character()), czeonia = numeric(), volume = integer()))
   }
 
   date = NULL
@@ -184,7 +184,6 @@ parse_cnb_fx_rates = function(json) {
 
   date = NULL
   dt = json$rates |>
-    map(as.data.table) |>
     rbindlist(fill = TRUE) |>
     setnames(convert_camel_case) |>
     setnames("valid_for", "date")

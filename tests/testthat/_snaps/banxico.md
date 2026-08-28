@@ -1,3 +1,19 @@
+# Banxico requests accept at most 20 series
+
+    Code
+      banxico_data(series, api_key = "dummy")
+    Condition
+      Error in `banxico_data()`:
+      ! Assertion on 'series' failed: Must have length <= 20, but has length 21.
+
+---
+
+    Code
+      banxico_metadata(series, api_key = "dummy")
+    Condition
+      Error in `banxico_metadata()`:
+      ! Assertion on 'series' failed: Must have length <= 20, but has length 21.
+
 # banxico_data requires both or neither date
 
     Code
@@ -10,3 +26,4 @@
     Condition
       Error:
       ! `start_date` and `end_date` must be supplied together.
+

@@ -27,16 +27,22 @@
 #' boe_data(c("IUMABEDR", "IUALBEDR"), "2015-01-01")
 #' }
 boe_data = function(key, start_date, end_date = Sys.Date()) {
-  assert_character(key, min.chars = 1L, max.len = 300L)
+  assert_character(key, min.chars = 1L, min.len = 1L, max.len = 300L)
   start_date = assert_dateish(start_date)
   end_date = assert_dateish(end_date)
 
   xml = boe(
     SeriesCodes = key,
-    Datefrom = format(start_date, "%d/%b/%Y"),
-    Dateto = format(end_date, "%d/%b/%Y")
+    Datefrom = boe_date(start_date),
+    Dateto = boe_date(end_date)
   )
   parse_boe_data(xml)
+}
+
+# the BoE expects dd/Mmm/yyyy with English month abbreviations, so avoid the locale-aware %b
+boe_date = function(x) {
+  lt = as.POSIXlt(x)
+  sprintf("%02d/%s/%d", lt$mday, month.abb[lt$mon + 1L], lt$year + 1900L)
 }
 
 parse_boe_data = function(xml) {

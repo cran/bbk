@@ -6,6 +6,12 @@ test_that("banxico_data input validation works", {
   expect_error(banxico_data("SF43718", end_date = TRUE))
 })
 
+test_that("Banxico requests accept at most 20 series", {
+  series = rep("SF43718", 21L)
+  expect_snapshot(error = TRUE, banxico_data(series, api_key = "dummy"))
+  expect_snapshot(error = TRUE, banxico_metadata(series, api_key = "dummy"))
+})
+
 test_that("banxico_data requires both or neither date", {
   expect_snapshot(error = TRUE, {
     banxico_data("SF43718", start_date = "2024-01-01", api_key = "dummy")
@@ -59,4 +65,10 @@ test_that("banxico_freq maps known and unknown codes", {
 
 test_that("banxico_as_numeric coerces N/E to NA", {
   expect_identical(banxico_as_numeric(c("17.01", "N/E", "1,234.5")), c(17.01, NA, 1234.5))
+})
+
+test_that("banxico_error_body returns detailed API errors", {
+  body = charToRaw('{"error":{"mensaje":"Limit exceeded.","detalle":"Retry after 60 seconds."}}')
+  resp = httr2::response(400L, headers = "content-type: application/json", body = body)
+  expect_identical(banxico_error_body(resp), "Retry after 60 seconds.")
 })

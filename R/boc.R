@@ -46,6 +46,8 @@ boc_data = function(group_name = NULL, series_name = NULL, start_date = NULL, en
 #' Fetch Bank of Canada (BoC) metadata (details)
 #'
 #' @inheritParams boc_data
+#' @param series_name (`NULL` | `character(1)`)\cr
+#'   Name of the series. Only one of `group_name` or `series_name` can be used.
 #' @returns A [data.table::data.table()] with the requested data.
 #' @source <https://www.bankofcanada.ca/valet/docs>
 #' @export
@@ -85,7 +87,7 @@ boc_catalog = function(type = "groups") {
   assert_choice(type, c("groups", "series"))
   json = boc("lists", type)
   lst = json[[type]]
-  dt = rbindlist(map(lst, setDT))
+  dt = rbindlist(lst)
   dt[, "name" := names(lst)]
   dt[]
 }
@@ -101,7 +103,7 @@ boc_details_group = function(name) {
   grp = json$groupDetails
   meta = setDT(grp[lengths(grp) == 1L])
   setnames(meta, \(x) paste("group", x, sep = "_"))
-  series = rbindlist(map(grp$groupSeries, setDT))
+  series = rbindlist(grp$groupSeries)
   series[, "name" := names(grp$groupSeries)]
   setnames(series, \(x) paste("series", x, sep = "_"))
   series[, names(meta) := meta]
@@ -110,14 +112,11 @@ boc_details_group = function(name) {
   series[]
 }
 
-boc_series_obs = function(name, start_date, end_date) {
-  name = paste(name, collapse = ",")
-  json = boc("observations", name, start_date = start_date, end_date = end_date)
-
-  meta = rbindlist(map(json$seriesDetail, \(x) setDT(x[lengths(x) == 1])))
-  meta[, "name" := names(json$seriesDetail)]
-
-  obs = json$observations |>
+boc_obs = function(observations) {
+  if (length(observations) == 0L) {
+    return(data.table(date = character(), name = character(), value = character()))
+  }
+  observations |>
     map(function(x) {
       nms = names(x)
       x |>
@@ -134,7 +133,16 @@ boc_series_obs = function(name, start_date, end_date) {
       na.rm = TRUE,
       variable.factor = FALSE
     )
+}
 
+boc_series_obs = function(name, start_date, end_date) {
+  name = paste(name, collapse = ",")
+  json = boc("observations", name, start_date = start_date, end_date = end_date)
+
+  meta = rbindlist(map(json$seriesDetail, \(x) setDT(x[lengths(x) == 1])))
+  meta[, "name" := names(json$seriesDetail)]
+
+  obs = boc_obs(json$observations)
   obs = meta[obs, on = "name"]
   value = NULL
   obs[, let(date = as.Date(date), value = as.numeric(value))]
@@ -149,23 +157,7 @@ boc_group_obs = function(name = "FX_RATES_DAILY", start_date = NULL, end_date = 
   meta[, "name" := names(json$seriesDetail)]
   setnames(meta, \(x) paste("series", x, sep = "_"))
 
-  obs = json$observations |>
-    map(function(x) {
-      nms = names(x)
-      x |>
-        unlist(recursive = FALSE, use.names = FALSE) |>
-        setDT() |>
-        setnames(nms)
-    }) |>
-    rbindlist(fill = TRUE) |>
-    setnames("d", "date") |>
-    melt(
-      id.vars = "date",
-      variable.name = "name",
-      value.name = "value",
-      na.rm = TRUE,
-      variable.factor = FALSE
-    )
+  obs = boc_obs(json$observations)
   value = NULL
   obs[, let(date = as.Date(date), value = as.numeric(value))]
   setnames(obs, "name", "series_name")

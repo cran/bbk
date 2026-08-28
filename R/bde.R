@@ -31,7 +31,7 @@
 #' bde_data("DEEQ.N.ES.W1.S1.S1.T.B.G._Z._Z._Z.EUR._T._X.N.ALL", time_range = 2024)
 #' }
 bde_data = function(key, time_range = NULL, lang = "en") {
-  assert_character(key, min.chars = 1L)
+  assert_character(key, min.chars = 1L, min.len = 1L)
   assert_period(time_range)
   assert_choice(lang, c("en", "es"))
 
@@ -67,13 +67,11 @@ parse_bde_data = function(json) {
   dt = json |>
     map(function(x) {
       dt = as.data.table(x[names(x) != "informacion"])
-      meta = x$informacion |>
-        map(setDT) |>
-        rbindlist() |>
-        setnames(c("name", "value"))
+      meta = setnames(rbindlist(x$informacion), c("name", "value"))
       name = NULL
       meta[, name := chartr(" ", "_", tolower(name))]
       meta[, name := gsub("[()]", "", name)]
+      meta[name %chin% names(bde_translations), name := bde_translations[name]]
       exclude = c(
         "name",
         "decimals",
@@ -91,7 +89,7 @@ parse_bde_data = function(json) {
     rbindlist(fill = TRUE) |>
     setnames(old_cols, new_cols)
 
-  value = NULL
+  date = value = NULL
   dt[, let(date = unlist(date, use.names = FALSE), value = unlist(value, use.names = FALSE))]
   dt[,
     names(.SD) := map(.SD, \(x) as.POSIXct(x, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")),
@@ -116,10 +114,20 @@ parse_bde_data = function(json) {
 #' bde_latest(c("D_1NBAF472", "DTNPDE2010_P0000P_PS_APU"))
 #' }
 bde_latest = function(key, lang = "en") {
-  assert_character(key, min.chars = 1L)
+  assert_character(key, min.chars = 1L, min.len = 1L)
   assert_choice(lang, c("en", "es"))
 
   json = bde(key, lang = lang, resource = "favoritas")
+  parse_bde_latest(json)
+}
+
+parse_bde_latest = function(json) {
+  # the favoritas resource reports an unknown series with a 200 and a per-series error object
+  failed = map_lgl(json, \(x) !is.null(x[["errNum"]]))
+  if (any(failed)) {
+    keys = map_chr(json[failed], \(x) x[["codigo"]] %||% NA_character_)
+    stop(sprintf("Series not found: %s.", toString(keys)), call. = FALSE)
+  }
 
   old_cols = c(
     "serie",
@@ -132,14 +140,31 @@ bde_latest = function(key, lang = "en") {
     "valor"
   )
   new_cols = c("key", "title", "freq", "decimals", "symbol", "trend", "date", "value")
-  dt = json |>
-    map(setDT) |>
-    rbindlist() |>
-    setnames(old_cols, new_cols)
+  dt = setnames(rbindlist(json), old_cols, new_cols)
+  date = NULL
   dt[, date := as.POSIXct(date, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")]
   setcolorder(dt, col_order, skip_absent = TRUE)
   dt[]
 }
+
+# fmt: skip
+bde_translations = c(
+  nombre = "name",
+  "descripci\u00f3n" = "description",
+  unidades = "units",
+  decimales = "decimals",
+  "n\u00famero_de_observaciones" = "number_of_observations",
+  primer_valor = "first_value",
+  "\u00faltimo_valor" = "last_value",
+  # tolower() leaves the accented capital unchanged in a C locale
+  "\u00daltimo_valor" = "last_value",
+  "valor_m\u00ednimo" = "min_value",
+  "valor_m\u00e1ximo" = "max_value",
+  fuente = "source",
+  notas = "notes",
+  series_relacionadas_cuadro_pdf = "related_series_pdf_table",
+  series_relacionadas_archivo_excel = "related_series_excel_file"
+)
 
 bde = function(key, ..., lang, resource = "listaSeries") {
   url = sprintf("https://app.bde.es/bierest/resources/srdatosapp/%s", resource)

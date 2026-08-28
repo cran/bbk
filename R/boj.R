@@ -10,8 +10,8 @@
 #'   codes per request. All codes must have the same frequency. Use [boj_metadata()] to find
 #'   available codes.
 #' @param start_date (`NULL` | `character(1)` | `integer(1)`)\cr
-#'   Start date of the data. Format depends on frequency: `"YYYYMMDD"` or `YYYY` for daily,
-#'   `"YYYYMM"` for monthly, `"YYYYQQ"` for quarterly (where QQ is 01-04), `"YYYY"` for annual.
+#'   Start date of the data. Format depends on frequency: `"YYYYMM"` for daily, weekly, and
+#'   monthly data, `"YYYYQQ"` for quarterly (where QQ is 01-04), and `"YYYY"` for annual.
 #'   If `NULL`, all available data is returned. Default `NULL`.
 #' @param end_date (`NULL` | `character(1)` | `integer(1)`)\cr
 #'   End date of the data, in the same format as start_date. If `NULL`, data up to the latest
@@ -166,16 +166,24 @@ parse_boj_date = function(dates, freq) {
       month = sprintf("%02d", (quarter - 1L) * 3L + 1L)
       as.Date(paste0(year, month, "01"), format = "%Y%m%d")
     },
-    semiannual = ,
-    `semiannual(sep)` = {
+    semiannual = {
       dates_chr = as.character(dates)
       year = substr(dates_chr, 1L, 4L)
       half = as.integer(substr(dates_chr, 5L, 6L))
       month = sprintf("%02d", (half - 1L) * 6L + 1L)
       as.Date(paste0(year, month, "01"), format = "%Y%m%d")
     },
-    annual = ,
-    `annual(mar)` = as.integer(dates),
+    # the fiscal half-year starts in April: 01 = April-September, 02 = October-March
+    `semiannual(sep)` = {
+      dates_chr = as.character(dates)
+      year = substr(dates_chr, 1L, 4L)
+      half = as.integer(substr(dates_chr, 5L, 6L))
+      month = sprintf("%02d", (half - 1L) * 6L + 4L)
+      as.Date(paste0(year, month, "01"), format = "%Y%m%d")
+    },
+    annual = as.Date(sprintf("%s-01-01", dates), format = "%Y-%m-%d"),
+    # the fiscal year starts in April
+    `annual(mar)` = as.Date(sprintf("%s-04-01", dates), format = "%Y-%m-%d"),
     as.character(dates)
   )
 }

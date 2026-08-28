@@ -9,7 +9,6 @@ test_that("ecb_data input validation works", {
   expect_error(ecb_data("EXR", 1L))
   expect_error(ecb_data("EXR", TRUE))
   expect_error(ecb_data("EXR", NA))
-  expect_error(ecb_data("EXR", c("D.USD.EUR.SP00.A", "D.USD.EUR.SP00.A")))
   # start_period should be a character(1) or NULL
   expect_error(ecb_data("abcde", "abc", start_period = 1L))
   expect_error(ecb_data("abcde", "abc", start_period = TRUE))
@@ -46,7 +45,7 @@ test_that("ecb_data passes updated_after as updatedAfter", {
   })
   local_mocked_bindings(parse_ecb_data = function(xml) data.table())
   ecb_data("EXR", "D.USD.EUR.SP00.A", updated_after = as.Date("2024-06-01"))
-  expect_match(captured$url, "updatedAfter=2024-06-01T00%3A00%3A00")
+  expect_match(captured$url, "updatedAfter=2024-06-01T00%3A00%3A00Z")
 })
 
 test_that("parse_bbk_data works", {
@@ -83,6 +82,55 @@ test_that("parse_ecb_data drops observations without a value and keeps alignment
   actual = parse_ecb_data(body)
   expect_identical(actual$date, as.Date(c("2020-01-01", "2020-03-01")))
   expect_identical(actual$value, c(1, 3))
+})
+
+test_that("parse_ecb_data keeps annual dates intact in mixed-frequency results", {
+  body = xml2::read_xml(
+    '<message:GenericData xmlns:message="m" xmlns:generic="http://generic">
+      <message:DataSet>
+        <generic:Series>
+          <generic:SeriesKey>
+            <generic:Value id="FREQ" value="A"/>
+            <generic:Value id="CURRENCY" value="USD"/>
+          </generic:SeriesKey>
+          <generic:Obs><generic:ObsDimension value="2020"/><generic:ObsValue value="1.1"/></generic:Obs>
+        </generic:Series>
+        <generic:Series>
+          <generic:SeriesKey>
+            <generic:Value id="FREQ" value="M"/>
+            <generic:Value id="CURRENCY" value="USD"/>
+          </generic:SeriesKey>
+          <generic:Obs><generic:ObsDimension value="2020-03"/><generic:ObsValue value="1.2"/></generic:Obs>
+        </generic:Series>
+      </message:DataSet>
+    </message:GenericData>'
+  )
+  actual = parse_ecb_data(body)
+  expect_identical(actual$date, as.Date(c("2020-01-01", "2020-03-01")))
+  expect_identical(actual$freq, c("annual", "monthly"))
+})
+
+test_that("parse_ecb_data ignores observation level attributes", {
+  body = xml2::read_xml(
+    '<message:GenericData xmlns:message="m" xmlns:generic="http://generic">
+      <message:DataSet>
+        <generic:Series>
+          <generic:SeriesKey><generic:Value id="FREQ" value="D"/></generic:SeriesKey>
+          <generic:Obs>
+            <generic:ObsDimension value="2020-01-01"/><generic:ObsValue value="1"/>
+            <generic:Attributes><generic:Value id="OBS_STATUS" value="M"/></generic:Attributes>
+          </generic:Obs>
+          <generic:Obs>
+            <generic:ObsDimension value="2020-01-02"/><generic:ObsValue value="2"/>
+            <generic:Attributes><generic:Value id="OBS_STATUS" value="A"/></generic:Attributes>
+          </generic:Obs>
+        </generic:Series>
+      </message:DataSet>
+    </message:GenericData>'
+  )
+  actual = parse_ecb_data(body)
+  expect_identical(actual$value, c(1, 2))
+  expect_false("obs_status" %in% names(actual))
 })
 
 test_that("ecb_dimension input validation works", {

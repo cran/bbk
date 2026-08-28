@@ -48,9 +48,9 @@ parse_snb_data = function(json) {
     vals[, names(ref) := ref]
   }))
 
+  duration = scale = NULL
   dt[!nzchar(scale), scale := NA_character_]
   setnames(dt, "frequency", "duration")
-  duration = NULL
   dt[, duration := substring(duration, 1L, 3L)]
   freq = sdmx_freq(dt[1L, duration])
   dt[, let(date = parse_date(date, freq), freq = freq)]
@@ -80,12 +80,14 @@ snb_dimension = function(key, lang = "en") {
 }
 
 parse_snb_dimension = function(json) {
+  flatten_items = function(items) {
+    items |>
+      map(\(x) if (is.null(x$dimensionItems)) list(x) else flatten_items(x$dimensionItems)) |>
+      unlist(recursive = FALSE)
+  }
+
   rbindlist(map(json$dimensions, function(x) {
-    items = x$dimensionItems
-    has_children = map_lgl(items, \(item) !is.null(item$dimensionItems))
-    if (any(has_children)) {
-      items = unlist(map(items, "dimensionItems"), recursive = FALSE)
-    }
+    items = flatten_items(x$dimensionItems)
     data.table(
       dim_id = x$id,
       dim_name = x$name,

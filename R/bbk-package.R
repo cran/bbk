@@ -19,10 +19,11 @@
 #' @importFrom httr2 resp_body_string
 #' @importFrom httr2 resp_body_xml
 #' @importFrom httr2 resp_content_type
+#' @importFrom httr2 resp_has_body
 #' @importFrom httr2 resp_status
 #' @importFrom httr2 resp_url
 #' @importFrom httr2 resps_data
-#' @importFrom stats na.omit setNames
+#' @importFrom stats median na.omit setNames
 "_PACKAGE"
 
 col_order = c("date", "key", "value", "freq", "title", "description")

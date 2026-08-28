@@ -11,8 +11,8 @@ banxico_metadata(series, api_key = banxico_key())
 }
 \arguments{
 \item{series}{(\code{character()})\cr
-One or more SIE series codes to query (e.g., \code{"SF43718"} for the FIX peso/US dollar exchange
-rate). Series codes can be found on the SIE website.}
+Up to 20 SIE series codes to query (e.g., \code{"SF43718"} for the FIX peso/US dollar exchange rate).
+Series codes can be found on the SIE website.}
 
 \item{api_key}{(\code{character(1)})\cr
 The SIE API token. Defaults to the \code{BANXICO_KEY} environment variable.}
@@ -43,6 +43,8 @@ Other metadata:
 \code{\link[=bdp_series]{bdp_series()}},
 \code{\link[=bis_dimension]{bis_dimension()}},
 \code{\link[=bis_metadata]{bis_metadata()}},
+\code{\link[=boi_dimension]{boi_dimension()}},
+\code{\link[=boi_metadata]{boi_metadata()}},
 \code{\link[=boj_metadata]{boj_metadata()}},
 \code{\link[=cnb_dimension]{cnb_dimension()}},
 \code{\link[=cnb_indicators]{cnb_indicators()}},

@@ -27,10 +27,9 @@ srb_data = function(series, start_date = NULL, end_date = NULL) {
   start_date = assert_dateish(start_date, null.ok = TRUE)
   end_date = assert_dateish(end_date, null.ok = TRUE)
 
-  if (is.null(start_date) || is.null(end_date)) {
-    meta = srb("Observations/Latest", series)
-    start_date = start_date %||% as.Date("1900-01-01")
-    end_date = end_date %||% as.Date(meta$date)
+  start_date = start_date %||% as.Date("1900-01-01")
+  if (is.null(end_date)) {
+    end_date = as.Date(srb("Observations/Latest", series)$date)
   }
 
   json = srb("Observations", series, format(start_date), format(end_date))
@@ -53,9 +52,11 @@ srb_data = function(series, start_date = NULL, end_date = NULL) {
 #' }
 srb_series = function(type = "series") {
   assert_choice(type, c("series", "groups"))
-  type = if (type == "series") "Series" else "Groups"
-  json = srb(type)
-  if (type == "series") parse_srb_series(json) else parse_srb_groups(json)
+  if (type == "series") {
+    parse_srb_series(srb("Series"))
+  } else {
+    parse_srb_groups(srb("Groups"))
+  }
 }
 
 parse_srb_data = function(json, series) {
@@ -65,7 +66,7 @@ parse_srb_data = function(json, series) {
     return(dt)
   }
   value = NULL
-  dt = rbindlist(map(json, setDT))
+  dt = rbindlist(json)
   dt[, let(
     date = as.Date(date),
     key = toupper(series),
@@ -84,6 +85,10 @@ parse_srb_series = function(json) {
 }
 
 parse_srb_groups = function(json) {
+  if (!is.null(json$groupId)) {
+    json = list(json)
+  }
+
   flatten_groups = function(groups) {
     res = list()
     for (g in groups) {
@@ -167,21 +172,31 @@ srb_calendar = function(start_date, end_date = NULL) {
 }
 
 parse_srb_calendar = function(json) {
-  dt = json |>
-    map(setDT) |>
-    rbindlist() |>
-    setnames(convert_camel_case)
+  if (length(json) == 0L) {
+    return(data.table(
+      calendar_date = as.Date(character()),
+      swedish_bankday = logical(),
+      week_year = integer(),
+      week_number = integer(),
+      quarter_number = integer(),
+      ultimo = logical()
+    ))
+  }
+  dt = setnames(rbindlist(json), convert_camel_case)
   calendar_date = NULL
   dt[, calendar_date := as.Date(calendar_date)]
   dt[]
 }
 
 srb = function(...) {
-  base_request("https://api.riksbank.se/swea/v1") |>
+  resp = base_request("https://api.riksbank.se/swea/v1") |>
     req_url_path_append(...) |>
     req_error(body = srb_error_body) |>
-    req_perform() |>
-    resp_body_json()
+    req_perform()
+  if (!resp_has_body(resp)) {
+    return(list())
+  }
+  resp_body_json(resp)
 }
 
 srb_error_body = function(resp) {

@@ -47,7 +47,7 @@ parse_bcb_data = function(json, series) {
     return(dt[])
   }
   data = valor = NULL
-  dt = rbindlist(map(json, setDT), fill = TRUE)
+  dt = rbindlist(json, fill = TRUE)
   dt[, let(
     date = as.Date(data, "%d/%m/%Y"),
     key = as.character(series),
@@ -87,7 +87,7 @@ parse_bcb_data = function(json, series) {
 #' bcb_fx_rates(c("USD", "EUR"), start_date = "2024-01-01", end_date = "2024-01-31")
 #' }
 bcb_fx_rates = function(currency, start_date, end_date = NULL) {
-  assert_character(currency, min.len = 1L, min.chars = 3L, any.missing = FALSE)
+  assert_character(currency, min.len = 1L, n.chars = 3L, any.missing = FALSE)
   start_date = assert_dateish(start_date)
   end_date = assert_dateish(end_date, null.ok = TRUE)
   end_date = end_date %||% start_date

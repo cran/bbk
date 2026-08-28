@@ -62,6 +62,7 @@ ecb_data = function(
   resource = sdmx_data_resource(flow, key, default_key = "all")
   xml = ecb(
     resource = resource,
+    accept = "application/vnd.sdmx.genericdata+xml;version=2.1",
     startPeriod = start_period,
     endPeriod = end_period,
     firstNObservations = first_n,
@@ -99,14 +100,8 @@ ecb_data = function(
 #' }
 ecb_metadata = function(type, agency = NULL, id = NULL) {
   assert_choice(type, c("datastructure", "dataflow", "codelist", "concept"))
-  args = switch(
-    type,
-    datastructure = list("datastructure", "//str:DataStructure"),
-    dataflow = list("dataflow", "//str:Dataflow"),
-    codelist = list("codelist", "//str:Codelist"),
-    concept = list("conceptscheme", "//str:ConceptScheme")
-  )
-  do.call(fetch_ecb_metadata, c(args, list(agency, id)))
+  meta = sdmx_metadata_type(type)
+  fetch_ecb_metadata(meta$resource, meta$xpath, agency, id)
 }
 
 #' Fetch European Central Bank (ECB) dimensions
@@ -160,7 +155,7 @@ parse_ecb_data = function(xml) {
       as.list()
 
     attrs = x |>
-      xml2::xml_find_first(".//generic:Attributes") |>
+      xml2::xml_find_first("./generic:Attributes") |>
       xml2::xml_children()
     nms = attrs |>
       xml2::xml_attr("id") |>
@@ -207,11 +202,15 @@ parse_ecb_metadata = function(entries) {
 }
 
 ecb_error_body = function(resp) {
-  message = resp_body_string(resp, "UTF-8")
-  docs = "See docs at <https://data.ecb.europa.eu/help/api/status-codes>"
-  c(message, docs)
+  sdmx_error_body(resp, docs = "See docs at <https://data.ecb.europa.eu/help/api/status-codes>")
 }
 
-ecb = function(resource, ...) {
-  sdmx_request("https://data-api.ecb.europa.eu/service/", resource, ecb_error_body, ...)
+ecb = function(resource, ..., accept = NULL) {
+  sdmx_request(
+    "https://data-api.ecb.europa.eu/service/",
+    resource,
+    ecb_error_body,
+    ...,
+    accept = accept
+  )
 }

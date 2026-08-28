@@ -48,7 +48,7 @@ onb_data = function(
   lang = "en"
 ) {
   hier_id = assert_count(hier_id, positive = TRUE, coerce = TRUE)
-  assert_character(key, min.chars = 1L)
+  assert_character(key, min.chars = 1L, min.len = 1L)
   assert_period(start_period)
   assert_period(end_period)
   assert_string(freq, min.chars = 1L, null.ok = TRUE)
@@ -90,7 +90,7 @@ parse_onb_data = function(xml) {
       attrs = xml2::xml_attrs(x)
       dt[, names(attrs) := as.list(attrs)]
     }) |>
-    rbindlist() |>
+    rbindlist(fill = TRUE) |>
     setnames(convert_camel_case) |>
     setnames(c("pos", "pos_title"), c("key", "title")) |>
     setcolorder(col_order, skip_absent = TRUE)
@@ -118,12 +118,14 @@ onb_metadata = function(hier_id, key, ..., lang = "en") {
 
 parse_onb_metadata = function(xml) {
   meta = xml |> xml2::xml_find_all("meta") |> xml2::xml_children()
-  x = setNames(xml2::as_list(meta), xml2::xml_name(meta))
-  x = x[lengths(x) == 1L]
-  x = unlist(x, recursive = FALSE)
+  # <data_available> and <releases> hold repeated sub-elements rather than a scalar, and are
+  # dropped even when empty so that the columns do not depend on the series
+  nested = c("data_available", "releases")
+  meta = meta[xml2::xml_length(meta) == 0L & xml2::xml_name(meta) %nin% nested]
+  x = setNames(as.list(xml2::xml_text(meta)), xml2::xml_name(meta))
   dt = setDT(x)
-  dt[, names(dt) := map(.SD, trimws), .SDcols = is.character]
-  dt[, names(dt) := map(.SD, \(x) replace(x, x == "-", NA)), .SDcols = is.character][]
+  dt[, names(.SD) := map(.SD, trimws), .SDcols = is.character]
+  dt[, names(.SD) := map(.SD, \(x) replace(x, x == "-", NA_character_)), .SDcols = is.character][]
 }
 
 #' Fetch Österreichische Nationalbank (OeNB) data frequency
@@ -156,7 +158,7 @@ parse_onb_frequency = function(xml) {
       attrs = xml2::xml_attrs(x)
       dt[, names(attrs) := as.list(attrs)]
     }) |>
-    rbindlist() |>
+    rbindlist(fill = TRUE) |>
     setnames(\(x) sub("_code", "", tolower(x), fixed = TRUE))
   dt
 }
@@ -217,8 +219,8 @@ parse_onb_toc = function(xml) {
   dt = elem |>
     xml2::xml_attrs() |>
     map(\(x) setDT(as.list(x))) |>
-    rbindlist()
-  desc = xml2::xml_text(xml2::xml_find_all(elem, "text"))
+    rbindlist(fill = TRUE)
+  desc = map_chr(elem, \(x) x |> xml2::xml_find_first("text") |> xml2::xml_text())
   id = parent = NULL
   dt[, let(id = as.integer(id), parent = as.integer(parent), description = desc)]
   dt[]
@@ -243,7 +245,7 @@ parse_onb_dimension = function(xml) {
     xml2::xml_find_all(".//data_content/structure/dimension") |>
     xml2::xml_attrs() |>
     map(\(x) setDT(as.list(x))) |>
-    rbindlist()
+    rbindlist(fill = TRUE)
   nr = NULL
   dt[, nr := as.integer(nr)][]
 }

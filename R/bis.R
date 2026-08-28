@@ -97,17 +97,14 @@ bis_metadata = function(type, id = NULL) {
   assert_choice(type, c("datastructure", "dataflow", "codelist", "concept"))
   assert_string(id, min.chars = 1L, null.ok = TRUE)
 
-  xpath = switch(
-    type,
-    datastructure = "//str:DataStructure",
-    dataflow = "//str:Dataflow",
-    codelist = "//str:Codelist",
-    concept = "//str:ConceptScheme"
-  )
-  type = if (type == "concept") "conceptscheme" else type
-  resource = if (is.null(id)) type else paste(type, "BIS", toupper(id), sep = "/")
+  meta = sdmx_metadata_type(type)
+  resource = if (is.null(id)) {
+    meta$resource
+  } else {
+    paste(meta$resource, "BIS", toupper(id), sep = "/")
+  }
   xml = bis(resource)
-  entries = xml2::xml_find_all(xml, xpath)
+  entries = xml2::xml_find_all(xml, meta$xpath)
   sdmx_metadata(entries)
 }
 
@@ -150,7 +147,7 @@ parse_bis_data = function(xml) {
       as.list()
 
     attrs = x |>
-      xml2::xml_find_first(".//generic:Attributes") |>
+      xml2::xml_find_first("./generic:Attributes") |>
       xml2::xml_children()
     nms = attrs |>
       xml2::xml_attr("id") |>
@@ -162,8 +159,8 @@ parse_bis_data = function(xml) {
 
     data = c(series_key, attrs)
     data$key = paste(series_key, collapse = ".")
-    data$freq = sdmx_freq(data$freq)
-    data$title = trimws(data$title)
+    data$freq = sdmx_freq(data[["freq"]])
+    data$title = trimws(data[["title"]] %||% data[["title_ts"]] %||% NA_character_)
 
     entries = xml2::xml_find_all(x, ".//generic:Obs[generic:ObsValue]")
     data$date = entries |>
@@ -184,15 +181,11 @@ parse_bis_data = function(xml) {
   res[]
 }
 
-bis_error_body = function(resp) {
-  resp_body_string(resp, "UTF-8")
-}
-
 bis = function(resource, ..., accept = NULL) {
   sdmx_request(
     "https://stats.bis.org/api/v1",
     resource = resource,
-    error_body = bis_error_body,
+    error_body = \(resp) sdmx_error_body(resp),
     accept = accept,
     ...
   )

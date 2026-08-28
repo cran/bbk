@@ -57,7 +57,8 @@ nob_data = function(
     startPeriod = start_period,
     endPeriod = end_period,
     firstNObservations = first_n,
-    lastNObservations = last_n
+    lastNObservations = last_n,
+    accept = "application/vnd.sdmx.genericdata+xml;version=2.1"
   )
   parse_nob_data(xml)
 }
@@ -88,17 +89,14 @@ nob_metadata = function(type, id = NULL, lang = "en") {
   assert_string(id, min.chars = 1L, null.ok = TRUE)
   assert_choice(lang, c("en", "no"))
 
-  xpath = switch(
-    type,
-    datastructure = "//str:DataStructure",
-    dataflow = "//str:Dataflow",
-    codelist = "//str:Codelist",
-    concept = "//str:ConceptScheme"
-  )
-  type = if (type == "concept") "conceptscheme" else type
-  resource = if (is.null(id)) type else paste(type, "NB", toupper(id), sep = "/")
+  meta = sdmx_metadata_type(type)
+  resource = if (is.null(id)) {
+    meta$resource
+  } else {
+    paste(meta$resource, "NB", toupper(id), sep = "/")
+  }
   xml = nob(resource)
-  entries = xml2::xml_find_all(xml, xpath)
+  entries = xml2::xml_find_all(xml, meta$xpath)
   sdmx_metadata(entries, lang)
 }
 
@@ -127,30 +125,46 @@ nob_dimension = function(id) {
 }
 
 parse_nob_data = function(xml) {
-  ns = xml2::xml_ns(xml)
-  series = xml2::xml_find_all(xml, ".//Series", ns)
+  series = xml2::xml_find_all(xml, ".//generic:Series")
   res = map(series, function(x) {
-    attrs = xml2::xml_attrs(x)
-    nms = tolower(names(attrs))
-    names(attrs) = nms
+    series_key = x |>
+      xml2::xml_find_first("./generic:SeriesKey") |>
+      xml2::xml_children()
+    nms = series_key |>
+      xml2::xml_attr("id") |>
+      tolower()
+    series_key = series_key |>
+      xml2::xml_attr("value") |>
+      setNames(nms) |>
+      as.list()
 
-    obs = xml2::xml_find_all(x, ".//Obs", ns)
-    obs_attrs = map(obs, xml2::xml_attrs)
-    date = map_chr(obs_attrs, "TIME_PERIOD")
-    value = as.numeric(map_chr(obs_attrs, "OBS_VALUE"))
+    attrs = x |>
+      xml2::xml_find_first("./generic:Attributes") |>
+      xml2::xml_children()
+    nms = attrs |>
+      xml2::xml_attr("id") |>
+      tolower()
+    attrs = attrs |>
+      xml2::xml_attr("value") |>
+      setNames(nms) |>
+      as.list()
 
-    key = paste(
-      attrs[nms %nin% c("collection", "calculated", "decimals", "unit_mult")],
-      collapse = "."
-    )
+    data = c(series_key, attrs)
+    data = data[names(data) %nin% c("collection", "calculated", "decimals", "unit_mult")]
+    data$key = paste(series_key, collapse = ".")
+    data$freq = sdmx_freq(data$freq)
 
-    freq = sdmx_freq(attrs[["freq"]])
+    entries = xml2::xml_find_all(x, "./generic:Obs[generic:ObsValue]")
+    data$date = entries |>
+      xml2::xml_find_all(".//generic:ObsDimension") |>
+      xml2::xml_attr("value") |>
+      parse_date(data$freq)
 
-    extra = attrs[nms %nin% c("freq", "collection", "calculated", "decimals", "unit_mult")]
-    data = c(
-      list(date = parse_date(date, freq), key = key, value = value, freq = freq),
-      as.list(extra)
-    )
+    data$value = entries |>
+      xml2::xml_find_all(".//generic:ObsValue") |>
+      xml2::xml_attr("value") |>
+      as.numeric()
+
     as.data.table(data)
   })
   res = res |>
@@ -159,10 +173,6 @@ parse_nob_data = function(xml) {
   res[]
 }
 
-nob_error_body = function(resp) {
-  resp_body_string(resp, "UTF-8")
-}
-
-nob = function(resource, ...) {
-  sdmx_request("https://data.norges-bank.no/api", resource, nob_error_body, ...)
+nob = function(resource, ..., accept = NULL) {
+  sdmx_request("https://data.norges-bank.no/api", resource, \(resp) sdmx_error_body(resp), ..., accept = accept)
 }

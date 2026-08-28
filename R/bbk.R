@@ -79,6 +79,7 @@ bbk_data = function(
   resource = sdmx_data_resource(flow, key)
   xml = bbk_make_request(
     resource = resource,
+    accept = "application/vnd.sdmx.genericdata+xml;version=2.1",
     startPeriod = start_period,
     endPeriod = end_period,
     firstNObservations = first_n,
@@ -189,13 +190,20 @@ parse_bbk_series = function(body, key) {
   files = list.files(td, full.names = TRUE)
   path = grepv("\\.csv$", files)[[1L]]
 
-  dt = fread(file = path, header = FALSE, skip = 10L, select = 1:2)
-  setnames(dt, c("date", "value"))
+  lines = readLines(path, encoding = "UTF-8")
+  data_start = grep("^\"?\\d{4}[-,]", lines)[1L]
+  if (is.na(data_start)) {
+    data_start = length(lines) + 1L
+    dt = data.table(date = character(), value = character())
+  } else {
+    dt = fread(file = path, header = FALSE, skip = data_start - 1L, select = 1:2)
+    setnames(dt, c("date", "value"))
+  }
   value = NULL
-  dt[value == ".", value := NA_character_]
+  dt[value %in% c(".", "-"), value := NA_character_]
   dt = na.omit(dt)
 
-  metadata = readLines(path, n = 10L)
+  metadata = lines[seq_len(data_start - 1L)]
   title = sub("^[\",]+", "", metadata[[2L]])
   title = sub("[\",]+$", "", title)
   freq = extract_metadata(metadata, "^Time format code")
@@ -207,12 +215,12 @@ parse_bbk_series = function(body, key) {
   category = extract_metadata(metadata, "^category,")
   last_update = extract_metadata(metadata, "^last update,")
   comment = extract_metadata(metadata, "^Comment \\(in english\\),")
-  comment = sub("^\"", "", comment)
   src = extract_metadata(metadata, "^Source \\(in english\\),")
 
   freq = sdmx_freq(freq)
   dt[, let(
     date = parse_date(date, freq),
+    value = as.numeric(value),
     key = key,
     title = title,
     freq = freq,
@@ -229,7 +237,7 @@ parse_bbk_series = function(body, key) {
 
 parse_bbk_data = function(xml) {
   series = xml2::xml_find_all(xml, ".//generic:Series")
-  dt = rbindlist(map(series, function(x) {
+  dt = map(series, function(x) {
     series_key = x |>
       xml2::xml_find_first(".//generic:SeriesKey") |>
       xml2::xml_children()
@@ -242,7 +250,7 @@ parse_bbk_data = function(xml) {
       as.list()
 
     attrs = x |>
-      xml2::xml_find_first(".//generic:Attributes") |>
+      xml2::xml_find_first("./generic:Attributes") |>
       xml2::xml_children()
     nms = attrs |>
       xml2::xml_attr("id") |>
@@ -257,6 +265,12 @@ parse_bbk_data = function(xml) {
     nms = sub("^bbk_(seis_)?", "", nms)
     nms = sub("^std_", "", nms)
     has_eng = paste0(nms, "_eng") %in% nms
+    for (i in which(has_eng)) {
+      j = match(paste0(nms[[i]], "_eng"), nms)
+      if (is.na(data[[j]])) {
+        data[[j]] = data[[i]]
+      }
+    }
     data = data[!has_eng]
     nms = sub("_eng$", "", nms[!has_eng])
     # fmt: skip
@@ -281,7 +295,8 @@ parse_bbk_data = function(xml) {
       as.numeric()
 
     as.data.table(data)
-  }))
+  }) |>
+    rbindlist(fill = TRUE)
   decimals = NULL
   dt[, decimals := as.integer(decimals)]
   setcolorder(dt, col_order, skip_absent = TRUE)
@@ -318,6 +333,12 @@ bbk_build_request = function(resource, accept = NULL) {
     req_error(body = bbk_error_body)
 }
 
-bbk_make_request = function(resource, ...) {
-  sdmx_request("https://api.statistiken.bundesbank.de/rest", resource, bbk_error_body, ...)
+bbk_make_request = function(resource, ..., accept = NULL) {
+  sdmx_request(
+    "https://api.statistiken.bundesbank.de/rest",
+    resource,
+    bbk_error_body,
+    ...,
+    accept = accept
+  )
 }

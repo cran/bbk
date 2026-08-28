@@ -46,7 +46,7 @@ test_that("bbk_data passes updated_after as preparedAfter", {
   })
   local_mocked_bindings(parse_bbk_data = function(xml) data.table())
   bbk_data("BBSIS", "abc", updated_after = as.Date("2024-06-01"))
-  expect_match(captured$url, "preparedAfter=2024-06-01T00%3A00%3A00")
+  expect_match(captured$url, "preparedAfter=2024-06-01T00%3A00%3A00Z")
 })
 
 test_that("parse_bbk_data works", {
@@ -83,6 +83,50 @@ test_that("parse_bbk_data scopes observations to each series", {
   expect_identical(actual$value, c(1, 2, 9))
 })
 
+test_that("parse_bbk_data falls back to the untranslated attribute value", {
+  body = xml2::read_xml(
+    '<message:GenericData xmlns:message="m" xmlns:generic="http://generic">
+      <message:DataSet>
+        <generic:Series>
+          <generic:SeriesKey><generic:Value id="ID" value="S1"/></generic:SeriesKey>
+          <generic:Attributes>
+            <generic:Value id="BBK_TIME_FORMAT" value="P1M"/>
+            <generic:Value id="BBK_UNIT" value="DKK"/>
+            <generic:Value id="BBK_UNIT_ENG"/>
+            <generic:Value id="BBK_TITLE" value="Titel"/>
+            <generic:Value id="BBK_TITLE_ENG" value="Title"/>
+          </generic:Attributes>
+          <generic:Obs><generic:ObsDimension value="2020-01"/><generic:ObsValue value="1"/></generic:Obs>
+        </generic:Series>
+      </message:DataSet>
+    </message:GenericData>'
+  )
+  actual = parse_bbk_data(body)
+  expect_identical(actual$unit, "DKK")
+  expect_identical(actual$title, "Title")
+})
+
+test_that("extract_metadata reads the whole csv field", {
+  metadata = c(
+    'Comment (in english),"The ECB publishes daily rates, which are calculated at 14.15.",',
+    "unit,DKK,",
+    "category,,",
+    "note,The bank's own rate,",
+    'quoted,"He said ""hi"", then left",',
+    "lonely"
+  )
+  expect_identical(
+    extract_metadata(metadata, "^Comment \\(in english\\),"),
+    "The ECB publishes daily rates, which are calculated at 14.15."
+  )
+  expect_identical(extract_metadata(metadata, "^unit,"), "DKK")
+  expect_identical(extract_metadata(metadata, "^category,"), "")
+  expect_identical(extract_metadata(metadata, "^note,"), "The bank's own rate")
+  expect_identical(extract_metadata(metadata, "^quoted,"), 'He said "hi", then left')
+  expect_identical(extract_metadata(metadata, "^lonely"), NA_character_)
+  expect_identical(extract_metadata(metadata, "^absent,"), NA_character_)
+})
+
 test_that("parse_bbk_series works", {
   body = readRDS(test_path("fixtures", "bbk-series.rds"))
   actual = parse_bbk_series(
@@ -109,6 +153,15 @@ test_that("parse_bbk_series works", {
     "BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
   )
   expect_date(actual$date)
+})
+
+test_that("parse_bbk_series detects the metadata header length", {
+  body = readRDS(test_path("fixtures", "bbk-series-short-header.rds"))
+  actual = parse_bbk_series(body, "BBAF3.Q.F41.S121.DE.S1.W0.LE.N._X.B")
+  expect_data_table(actual, min.rows = 1L)
+  expect_identical(actual$date[[1L]], as.Date("1999-01-01"))
+  expect_identical(actual$value[[1L]], 4.4)
+  expect_all_equal(actual$freq, "quarterly")
 })
 
 test_that("bbk_series input validation works", {

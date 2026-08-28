@@ -21,19 +21,41 @@ parse_date = function(date, freq) {
   switch(
     freq,
     daily = as.Date(date),
-    monthly = as.Date(paste0(date, "-01")),
-    annual = as.integer(date),
+    weekly = parse_iso_week(date),
+    monthly = parse_period(date, 1L),
+    quarterly = parse_period(date, 3L),
+    `semi-annual` = parse_period(date, 6L),
+    annual = as.Date(sprintf("%s-01-01", date), format = "%Y-%m-%d"),
     date
   )
 }
 
+parse_period = function(date, months) {
+  n = as.integer(sub("^\\d{4}\\D*", "", date))
+  month = (n - 1L) * months + 1L
+  as.Date(sprintf("%s-%02d-01", substr(date, 1L, 4L), month), format = "%Y-%m-%d")
+}
+
+parse_iso_week = function(date) {
+  jan4 = as.Date(sprintf("%s-01-04", substr(date, 1L, 4L)), format = "%Y-%m-%d")
+  week1 = jan4 - (as.integer(format(jan4, "%u")) - 1L)
+  week1 + (as.integer(sub("^\\d{4}\\D*", "", date)) - 1L) * 7L
+}
+
 extract_metadata = function(string, pattern, fixed = FALSE) {
   x = grepv(pattern, string, fixed = fixed)
-  if (length(x) > 0L) {
-    strsplit(x, ",", fixed = TRUE)[[1L]][[2L]]
-  } else {
-    NA_character_
+  if (length(x) == 0L) {
+    return(NA_character_)
   }
+  fields = scan(
+    text = x[[1L]],
+    what = "",
+    sep = ",",
+    quote = "\"",
+    quiet = TRUE,
+    na.strings = character()
+  )
+  if (length(fields) < 2L) NA_character_ else fields[[2L]]
 }
 
 convert_camel_case = function(x) {

@@ -11,10 +11,11 @@ nbp_gold(start_date = NULL, end_date = NULL, last_n = NULL)
 }
 \arguments{
 \item{start_date}{(\code{NULL} | \code{character(1)} | \code{Date(1)})\cr
-Start date of the data.}
+Start date of the data. If \code{end_date} is omitted, only \code{start_date} is returned. The API
+limits the range to 367 days.}
 
 \item{end_date}{(\code{NULL} | \code{character(1)} | \code{Date(1)})\cr
-End date of the data.}
+End date of the data. Requires \code{start_date}. If \code{NULL}, defaults to \code{start_date}.}
 
 \item{last_n}{(\code{NULL} | \code{integer(1)})\cr
 Return only the last \code{n} quotations.}
@@ -52,6 +53,7 @@ Other data:
 \code{\link[=bis_data]{bis_data()}},
 \code{\link[=boc_data]{boc_data()}},
 \code{\link[=boe_data]{boe_data()}},
+\code{\link[=boi_data]{boi_data()}},
 \code{\link[=boj_data]{boj_data()}},
 \code{\link[=cnb_czeonia]{cnb_czeonia()}},
 \code{\link[=cnb_data]{cnb_data()}},

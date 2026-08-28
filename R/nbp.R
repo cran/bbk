@@ -8,9 +8,10 @@
 #' @param code (`NULL` | `character(1)`)\cr
 #'   ISO 4217 currency code (e.g. `"usd"`, `"eur"`). If `NULL`, returns all currencies.
 #' @param start_date (`NULL` | `character(1)` | `Date(1)`)\cr
-#'   Start date of the data.
+#'   Start date of the data. If `end_date` is omitted, only `start_date` is returned. The API
+#'   limits the range to 367 days.
 #' @param end_date (`NULL` | `character(1)` | `Date(1)`)\cr
-#'   End date of the data.
+#'   End date of the data. Requires `start_date`. If `NULL`, defaults to `start_date`.
 #' @param last_n (`NULL` | `integer(1)`)\cr
 #'   Return only the last `n` quotations.
 #' @returns A [data.table::data.table()] with exchange rates.
@@ -27,9 +28,12 @@ nbp_fx_rates = function(table, code = NULL, start_date = NULL, end_date = NULL, 
   start_date = assert_dateish(start_date, null.ok = TRUE)
   end_date = assert_dateish(end_date, null.ok = TRUE)
   last_n = assert_count(last_n, positive = TRUE, null.ok = TRUE, coerce = TRUE)
-  if (!is.null(last_n) && (!is.null(start_date) || !is.null(end_date))) {
-    stop("`last_n` and `start_date`/`end_date` are mutually exclusive.", call. = FALSE)
+  assert_exclusive(last_n, start_date)
+  assert_exclusive(last_n, end_date)
+  if (is.null(start_date) && !is.null(end_date)) {
+    stop("`end_date` requires `start_date`.", call. = FALSE)
   }
+  end_date = end_date %||% start_date
 
   resource = if (is.null(code)) "exchangerates/tables" else "exchangerates/rates"
   path = nbp_path(
@@ -49,9 +53,10 @@ nbp_fx_rates = function(table, code = NULL, start_date = NULL, end_date = NULL, 
 #' Retrieve the price of gold from the NBP Web API.
 #'
 #' @param start_date (`NULL` | `character(1)` | `Date(1)`)\cr
-#'   Start date of the data.
+#'   Start date of the data. If `end_date` is omitted, only `start_date` is returned. The API
+#'   limits the range to 367 days.
 #' @param end_date (`NULL` | `character(1)` | `Date(1)`)\cr
-#'   End date of the data.
+#'   End date of the data. Requires `start_date`. If `NULL`, defaults to `start_date`.
 #' @param last_n (`NULL` | `integer(1)`)\cr
 #'   Return only the last `n` quotations.
 #' @returns A [data.table::data.table()] with gold prices.
@@ -66,9 +71,12 @@ nbp_gold = function(start_date = NULL, end_date = NULL, last_n = NULL) {
   start_date = assert_dateish(start_date, null.ok = TRUE)
   end_date = assert_dateish(end_date, null.ok = TRUE)
   last_n = assert_count(last_n, positive = TRUE, null.ok = TRUE, coerce = TRUE)
-  if (!is.null(last_n) && (!is.null(start_date) || !is.null(end_date))) {
-    stop("`last_n` and `start_date`/`end_date` are mutually exclusive.", call. = FALSE)
+  assert_exclusive(last_n, start_date)
+  assert_exclusive(last_n, end_date)
+  if (is.null(start_date) && !is.null(end_date)) {
+    stop("`end_date` requires `start_date`.", call. = FALSE)
   }
+  end_date = end_date %||% start_date
 
   path = nbp_path(
     "cenyzlota",
@@ -90,13 +98,13 @@ parse_nbp_tables = function(json) {
   first = json[[1L]]
   tables = if (is.null(first$table)) list(json) else json # nolint
   rbindlist(map(tables, function(tbl) {
-    dt = rbindlist(map(tbl$rates, as.data.table))
+    dt = rbindlist(tbl$rates)
     dt[, "date" := as.Date(tbl$effectiveDate)]
   }))
 }
 
 parse_nbp_currency = function(json) {
-  dt = rbindlist(map(json$rates, as.data.table))
+  dt = rbindlist(json$rates)
   setnames(dt, "effectiveDate", "date")
   dt[, let(date = as.Date(date), code = json$code, currency = json$currency)]
 }
@@ -121,8 +129,6 @@ nbp_path = function(
     parts = c(parts, "last", last_n)
   } else if (!is.null(start_date) && !is.null(end_date)) {
     parts = c(parts, start_date, end_date)
-  } else if (!is.null(start_date)) {
-    parts = c(parts, start_date)
   }
   paste(parts, collapse = "/")
 }
@@ -137,5 +143,5 @@ nbp = function(path) {
 }
 
 nbp_error_body = function(resp) {
-  resp_body_string(resp)
+  resp_body_string(resp, "UTF-8")
 }

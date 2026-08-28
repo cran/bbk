@@ -35,9 +35,8 @@ ecb_fx_rates = function(x = "latest") {
   on.exit(unlink(tf), add = TRUE)
   curl::curl_download(url, tf)
   dt = fread(file = tf, sep = ",", na.strings = c("NA", "N/A"))
-  fmt = if (nrow(dt) > 1L) "%Y-%m-%d" else "%d %B %Y"
   Date = NULL
-  dt[, Date := as.Date(Date, fmt)]
+  dt[, Date := parse_ecb_fx_date(Date)]
   dt[, names(.SD) := map(.SD, as.numeric), .SDcols = !"Date"]
   dt = dt |>
     melt(
@@ -49,6 +48,16 @@ ecb_fx_rates = function(x = "latest") {
     na.omit() |>
     setnames(tolower)
   dt[]
+}
+
+parse_ecb_fx_date = function(x) {
+  if (all(grepl("^\\d{4}-\\d{2}-\\d{2}$", x))) {
+    return(as.Date(x))
+  }
+  old = Sys.getlocale("LC_TIME")
+  on.exit(Sys.setlocale("LC_TIME", old), add = TRUE)
+  Sys.setlocale("LC_TIME", "C")
+  as.Date(x, "%d %B %Y")
 }
 
 #' @rdname ecb_fx_rates
@@ -105,11 +114,21 @@ boc_fx_rates = function(start_date = NULL, end_date = NULL, limit = NULL, skip =
     req_perform() |>
     resp_body_json()
 
-  dt = json$ForeignExchangeRates |>
-    map(as.data.table) |>
-    rbindlist() |>
-    setnames(convert_camel_case)
+  if (length(json$ForeignExchangeRates) == 0L) {
+    return(data.table(
+      exchange_rate_id = integer(),
+      rate = numeric(),
+      exchange_rate_effective_timestamp = as.POSIXct(character(), tz = "UTC"),
+      exchange_rate_expiry_timestamp = as.POSIXct(character(), tz = "UTC"),
+      exchange_rate_source = character(),
+      from_currency = character(),
+      from_currency_csn = integer(),
+      to_currency = character(),
+      to_currency_csn = integer()
+    ))
+  }
 
+  dt = setnames(rbindlist(json$ForeignExchangeRates), convert_camel_case)
   dt[, names(.SD) := map(.SD, \(x) unlist(x, use.names = FALSE)), .SDcols = is.list]
   rate = NULL
   dt[, rate := as.numeric(rate)]
